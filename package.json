@@ -1,0 +1,29 @@
+{
+  "name": "payment-server",
+  "version": "0.0.0",
+  "description": "Paypal paypment service",
+  "main": "index.js",
+  "engines" : {
+    "node" : "0.10"
+  },
+  "dependencies": {
+    "express": "3.x"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nevill/payment-server"
+  },
+  "homepage": "https://github.com/nevill/payment-server",
+  "bugs": {
+    "url": "https://github.com/nevill/payment-server/issues"
+  },
+  "keywords": [
+    "paypal",
+    "payment"
+  ],
+  "author": "Nevill <nevill.dutt@gmail.com>",
+  "license": "MIT"
+}
