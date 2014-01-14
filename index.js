@@ -17,6 +17,8 @@ app.get('/', function(req, res) {
 });
 
 app.post('/paypal/ipn', function(req, res) {
+  var link = 'https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_notify-validate';
+
   client.post({
     url: link,
     form: req.body
