@@ -20,7 +20,7 @@ app.post('/paypal/ipn', function(req, res) {
   var verify = function(params, callback) {
     var body = require('querystring').stringify(params);
     var options = {
-      host: 'https://www.sandbox.paypal.com',
+      host: 'www.sandbox.paypal.com',
       method: 'POST',
       path: '/cgi-bin/webscr?cmd=_notify-validate',
       headers: {'Content-Length': body.length}
