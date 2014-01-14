@@ -22,7 +22,7 @@ app.post('/paypal/ipn', function(req, res) {
     var options = {
       host: 'https://www.sandbox.paypal.com',
       method: 'POST',
-      path: '/cgi-bin/webscr',
+      path: '/cgi-bin/webscr?cmd=_notify-validate',
       headers: {'Content-Length': body.length}
     };
 
