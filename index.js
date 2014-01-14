@@ -17,6 +17,7 @@ app.get('/', function(req, res) {
 });
 
 app.post('/paypal/ipn', function(req, res) {
+
   var verify = function(params, callback) {
     var body = require('querystring').stringify(params);
     var options = {
@@ -26,24 +27,24 @@ app.post('/paypal/ipn', function(req, res) {
       headers: {'Content-Length': body.length}
     };
 
-    var req = https.request(options, function(res) {
+    var httpReq = https.request(options, function(httpResp) {
       var data = [];
 
-      res.on('data', function(d) {
+      httpResp.on('data', function(d) {
         data.push(d);
       });
 
-      res.on('end', function() {
+      httpResp.on('end', function() {
         callback(null, data.join(''));
       });
     });
 
-    req.on('error', function(e) {
+    httpReq.on('error', function(e) {
       callback(e);
     });
 
-    req.write(body);
-    req.end();
+    httpReq.write(body);
+    httpReq.end();
   };
 
   verify(req.body, function(err, resp) {
@@ -53,9 +54,9 @@ app.post('/paypal/ipn', function(req, res) {
     else {
       console.log('verify response ===>', resp);
     }
-  });
 
-  res.send(200);
+    res.send(200);
+  });
 });
 
 var port = process.env.PORT || 3000;
