@@ -1,4 +1,5 @@
 var express = require('express');
+var client = require('request');
 
 var app = express();
 
@@ -16,6 +17,19 @@ app.get('/', function(req, res) {
 });
 
 app.post('/paypal/ipn', function(req, res) {
+  client.post({
+    url: link,
+    form: req.body
+  }, function(err, paypalResp, body) {
+    if (err) {
+      res.json(500, err);
+      console.log('err in verify response ===>', err);
+    }
+    else {
+      console.log('verify response ===>', body);
+    }
+  });
+
   res.send(200);
 });
 
