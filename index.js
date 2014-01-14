@@ -1,5 +1,5 @@
 var express = require('express');
-var client = require('request');
+var https = require('https');
 
 var app = express();
 
@@ -17,18 +17,41 @@ app.get('/', function(req, res) {
 });
 
 app.post('/paypal/ipn', function(req, res) {
-  var link = 'https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_notify-validate';
+  var verify = function(params, callback) {
+    var body = require('querystring').stringify(params);
+    var options = {
+      host: 'https://www.sandbox.paypal.com',
+      method: 'POST',
+      path: '/cgi-bin/webscr',
+      headers: {'Content-Length': body.length}
+    };
 
-  client.post({
-    url: link,
-    form: req.body
-  }, function(err, paypalResp, body) {
+    var req = https.request(options, function(res) {
+      var data = [];
+
+      res.on('data', function(d) {
+        data.push(d);
+      });
+
+      res.on('end', function() {
+        callback(null, data.join(''));
+      });
+    });
+
+    req.on('error', function(e) {
+      callback(e);
+    });
+
+    req.write(body);
+    req.end();
+  };
+
+  verify(req.body, function(err, resp) {
     if (err) {
-      res.json(500, err);
       console.log('err in verify response ===>', err);
     }
     else {
-      console.log('verify response ===>', body);
+      console.log('verify response ===>', resp);
     }
   });
 
