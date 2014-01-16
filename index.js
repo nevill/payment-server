@@ -1,25 +1,36 @@
 var express = require('express');
+var busboy = require('connect-busboy');
 var https = require('https');
+var qs = require('querystring');
 
 var app = express();
 
-app.use(express.logger('short'));
-app.use(express.bodyParser());
+app.use(busboy({immediate: true}));
 
 app.use(function(req, res, next) {
-  console.log('request content-type ===>', req.get('content-type'));
-  console.log('body ===>', req.body);
-  next();
+  req.body = req.body || {};
+  req.busboy.on('field', function(key, val) {
+    req.body[key] = val;
+  });
+
+  req.busboy.on('end', function() {
+    console.log('body ===>', req.body);
+    next();
+  });
 });
 
 app.get('/', function(req, res) {
   res.send('hello, express.js');
 });
 
+app.post('/', function(req, res) {
+  res.send(200);
+});
+
 app.post('/paypal/ipn', function(req, res) {
 
   var verify = function(params, callback) {
-    var body = require('querystring').stringify(params);
+    var body = qs.stringify(params);
     var options = {
       host: 'www.sandbox.paypal.com',
       method: 'POST',
