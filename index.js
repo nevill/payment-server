@@ -65,9 +65,9 @@ app.post('/paypal/ipn', function(req, res) {
     else {
       console.log('verify response ===>', resp);
     }
-
-    res.send(200);
   });
+
+  res.send(200);
 });
 
 var port = process.env.PORT || 3000;
