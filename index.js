@@ -2,8 +2,10 @@ var express = require('express');
 var busboy = require('connect-busboy');
 var https = require('https');
 var qs = require('querystring');
+var loadConfig = require('./config');
 
 var app = express();
+loadConfig(app);
 
 app.use(busboy({immediate: true}));
 
@@ -32,7 +34,7 @@ app.post('/paypal/ipn', function(req, res) {
   var verify = function(params, callback) {
     var body = qs.stringify(params);
     var options = {
-      host: 'www.sandbox.paypal.com',
+      host: app.get('paypal').host,
       method: 'POST',
       path: '/cgi-bin/webscr?cmd=_notify-validate',
       headers: {'Content-Length': body.length}
@@ -71,6 +73,7 @@ app.post('/paypal/ipn', function(req, res) {
 });
 
 var port = process.env.PORT || 3000;
+
 app.listen(port, function() {
   console.log('Listening on port', port);
 });
