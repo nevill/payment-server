@@ -21,7 +21,6 @@ module.exports = function(options) {
             });
 
             req.busboy.on('end', function() {
-              console.log('body ===>', req.body);
               next();
             });
           } else {
