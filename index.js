@@ -1,5 +1,6 @@
 var express = require('express');
-var busboy = require('connect-busboy');
+var busboyParser = require('./middleware/busboyParser');
+
 var https = require('https');
 var qs = require('querystring');
 var loadConfig = require('./config');
@@ -7,26 +8,14 @@ var loadConfig = require('./config');
 var app = express();
 loadConfig(app);
 
-app.use(busboy({immediate: true}));
-
-app.use(function(req, res, next) {
-  req.body = req.body || {};
-  req.busboy.on('field', function(key, val) {
-    req.body[key] = val;
-  });
-
-  req.busboy.on('end', function() {
-    console.log('body ===>', req.body);
-    next();
-  });
-});
+app.use(busboyParser({immediate: true}));
 
 app.get('/', function(req, res) {
   res.send('hello, express.js');
 });
 
 app.post('/', function(req, res) {
-  res.send(200);
+  res.json(req.body);
 });
 
 app.post('/paypal/ipn', function(req, res) {
