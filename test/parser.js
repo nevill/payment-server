@@ -1,14 +1,8 @@
 var qs = require('qs');
 var should = require('should');
 var request = require('supertest');
-var busboyParser = require('../middleware/busboyParser');
 
-var app = require('express')();
-app.use(busboyParser({immediate: true}));
-
-app.post('/', function(req, res) {
-  res.json(req.body);
-});
+var app = require('../');
 
 describe('When send a JSON request', function() {
   it('should response with it', function(done) {

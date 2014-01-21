@@ -10,7 +10,4 @@ var app = express();
 app.use(busboyParser({immediate: true}));
 loadRoutes(app);
 
-var port = process.env.PORT || 3000;
-app.listen(port, function() {
-  console.log('Listening on port', port);
-});
+module.exports = app;
