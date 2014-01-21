@@ -1,3 +1,5 @@
+var nconf = require('nconf');
+
 var config = {
   development: {
     paypal: {
@@ -16,9 +18,7 @@ var config = {
   }
 };
 
-module.exports = function(app) {
+module.exports = function() {
   var env = process.NODE_ENV || 'development';
-  Object.keys(config[env]).forEach(function(name) {
-    app.set(name, config[env][name]);
-  });
+  nconf.defaults(config[env]);
 };

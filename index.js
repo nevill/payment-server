@@ -4,11 +4,10 @@ var busboyParser = require('./middleware/busboyParser');
 var loadConfig = require('./config');
 var loadRoutes = require('./route');
 
+loadConfig();
+
 var app = express();
-loadConfig(app);
-
 app.use(busboyParser({immediate: true}));
-
 loadRoutes(app);
 
 var port = process.env.PORT || 3000;

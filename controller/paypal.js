@@ -1,11 +1,13 @@
 var https = require('https');
 var qs = require('querystring');
+var nconf = require('nconf');
 
 exports.ipn = function(req, res) {
   var verify = function(params, callback) {
     var body = qs.stringify(params);
+
     var options = {
-      host: app.get('paypal').host,
+      host: nconf.get('paypal:host'),
       method: 'POST',
       path: '/cgi-bin/webscr?cmd=_notify-validate',
       headers: {'Content-Length': body.length}
