@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+var util = require('util');
 var nopt = require('nopt');
 var nconf = require('nconf');
 
@@ -37,11 +38,17 @@ loadConfig();
 
 var paypalClient = new Paypal(nconf.get('paypal'));
 var key = remains.shift();
-paypalClient.preapprovalDetails(key, function(err, body) {
+
+var callMethod = paypalClient.paymentDetails;
+if (parsed.type === 'pre') {
+  callMethod = paypalClient.preapprovalDetails;
+}
+
+callMethod.call(paypalClient, key, function(err, body) {
   if (err) {
     console.error(err.message);
   }
   else {
-    console.log(body);
+    console.log(util.inspect(body, {depth: null}));
   }
 });
