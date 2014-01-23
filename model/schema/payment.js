@@ -1,19 +1,14 @@
 var mongoose = require('mongoose');
-
-var PAYMENT_STATUS = ['CREATED', 'ACTIVE', 'COMPLETED'];
-var PAYMENT_TYPE = ['SINGLE', 'RECURRING'];
-var PAYMENT_PERIOD = [
-  'DAILY', 'WEEKLY', 'BIWEEKLY', 'SEMIMONTHLY', 'MONTHLY', 'ANNUALLY'
-];
+var constant = require('../constant');
 
 var PaymentSchema = new mongoose.Schema({
   kind: { // will affect 'status'
     type: String,
-    enum: PAYMENT_TYPE
+    enum: Object.keys(constant.PAYMENT_TYPE)
   },
   status: {
     type: String,
-    enum: PAYMENT_STATUS
+    enum: Object.keys(constant.PAYMENT_STATUS)
   },
   key: { // a PayKey or PreapprovalKey
     type: String
@@ -29,6 +24,10 @@ var PaymentSchema = new mongoose.Schema({
   },
   endingAt: {
     type: Date
+  },
+  period: {
+    type: String,
+    enum: Object.keys(constant.PAYMENT_PERIOD)
   },
   senderEmail: {
     type: String

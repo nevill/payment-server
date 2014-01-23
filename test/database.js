@@ -35,4 +35,4 @@ exports.init = function(notClear, fn) {
   }
 };
 
-exports.models = require('../model');
+exports.models = require('../model').models;

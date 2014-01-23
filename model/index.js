@@ -11,4 +11,5 @@ Models.forEach(function(name) {
   mongoose.model(modelName, schema);
 });
 
-module.exports = mongoose.models;
+exports.models = mongoose.models;
+exports.constants = require('./constant');
