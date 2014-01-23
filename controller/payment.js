@@ -1,4 +1,4 @@
-var models = require('../model').models;
+var models = require('../model');
 
 exports.create = function(req, res, next) {
   models.Payment.create(req.body, function(err) {
