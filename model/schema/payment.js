@@ -62,7 +62,7 @@ var periodMap = {
 PaymentSchema.pre('save', true, function(next, done) {
   next();
   // initialize nextBilling date
-  if (this.isNew) {
+  if (this.isNew && this.kind === constant.PAYMENT_TYPE.RECURRING) {
     var period = periodMap[this.period];
     this.nextBilling = moment(this.startingAt).add(period, 1);
   }
