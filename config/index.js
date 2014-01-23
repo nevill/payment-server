@@ -3,7 +3,7 @@ var nconf = require('nconf');
 var defaults = {
   database: {
     driver: 'mongodb',
-    url: '' || process.env.MONGOLAB_URI,
+    url: 'mongodb://localhost/paymentServer-dev',
     options: {}
   },
   paypal: {
@@ -19,8 +19,14 @@ var config = {
   development: {
   },
   test: {
+    database: {
+      url: 'mongodb://localhost/paymentServer-test',
+    },
   },
   production: {
+    database: {
+      url: '' || process.env.MONGOLAB_URI,
+    },
     paypal: {
       host: 'www.paypal.com',
     }
