@@ -1,4 +1,5 @@
 var mongoose = require('mongoose');
+var moment = require('moment');
 var constant = require('../constant');
 
 var PaymentSchema = new mongoose.Schema({
@@ -50,6 +51,22 @@ var PaymentSchema = new mongoose.Schema({
   },
 }, {
   collection: 'Payment'
+});
+
+var periodMap = {
+  DAILY: 'd',
+  WEEKLY: 'w',
+  MONTHLY: 'M',
+  ANNUALLY: 'y'
+};
+PaymentSchema.pre('save', true, function(next, done) {
+  next();
+  // initialize nextBilling date
+  if (this.isNew) {
+    var period = periodMap[this.period];
+    this.nextBilling = moment(this.startingAt).add(period, 1);
+  }
+  done();
 });
 
 /**

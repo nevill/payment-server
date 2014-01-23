@@ -15,7 +15,8 @@
     "nconf": "~0.6.9",
     "underscore": "~1.5.2",
     "nopt": "~2.1.2",
-    "mongoose": "~3.8.4"
+    "mongoose": "~3.8.4",
+    "moment": "~2.5.1"
   },
   "scripts": {
     "start": "node server.js",
