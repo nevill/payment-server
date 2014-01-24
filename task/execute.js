@@ -36,10 +36,11 @@ Payment.findDues(function(err, payments) {
 
     payments.forEach(function(payment) {
       debug('Execute payment: %s ...', payment.id);
-      // send a request to payment
+      // prepare a payment request body
       var data = payment.composePayRequestData();
       data.returnUrl = returnUrl;
       data.cancelUrl = cancelUrl;
+
       paypalClient.pay(data, function(err, body) {
         if (err) {
           console.error(err.message);

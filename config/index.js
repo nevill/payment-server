@@ -13,6 +13,8 @@ var defaults = {
     password: '' || process.env.PP_PASSWORD,
     signature: '' || process.env.PP_SIGNATURE,
     applicationId: '' || process.env.PP_APP_ID,
+    // message used in API call /Pay, will replace %d with the amount
+    memoTemplate: 'Pay %d via Example.com',
   }
 };
 

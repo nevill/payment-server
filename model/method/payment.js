@@ -1,3 +1,5 @@
+var util = require('util');
+var nconf = require('nconf');
 var constant = require('../constant');
 
 var classMethods = {};
@@ -48,6 +50,7 @@ instanceMethods.composePayRequestData = function() {
     },
     senderEmail: this.senderEmail,
     actionType: 'PAY',
+    memo: util.format(nconf.get('paypal:memoTemplate'), this.amount),
   };
 
   if (this.kind === constant.PAYMENT_TYPE.RECURRING) {
