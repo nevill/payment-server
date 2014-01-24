@@ -55,7 +55,6 @@ describe('Payment Instance', function() {
         endingAt: new Date(2014, 11, 31),
         senderEmail: 'guest@example.com',
         amount: 1.99,
-        accruedAmount: 0.00,
         period: 'DAILY',
         callbackUrl: 'https://localhost/paypal?id=someRandomId28472329'
       });
@@ -71,15 +70,14 @@ describe('Payment Instance', function() {
     });
 
     describe('When execute a payment', function() {
+      var amount = 2.93;
       before(function(done) {
         this.invoice = {
           payKey: 'AP-TestingPayKey',
-          amount: 2.93,
+          amount: amount,
           receivers: ['cause@example.com']
         };
         this.billingDay = this.payment.nextBilling;
-        this.accruedAmount = this.payment.accruedAmount;
-
         this.payment.execute(this.invoice, done);
       });
 
@@ -89,8 +87,7 @@ describe('Payment Instance', function() {
         lastBilling.should.within(this.billingDay, new Date());
         this.payment.nextBilling.should.within(
           lastBilling.valueOf(), lastBilling.valueOf() + 1000 * 86400);
-        this.payment.accruedAmount.should.eql(
-          this.accruedAmount + this.invoice.amount);
+        this.payment.accruedAmount.should.eql(amount);
         this.payment.history.should.have.length(1);
       });
     });

@@ -13,12 +13,15 @@ classMethods.findDues = function(done) {
   }, done);
 };
 
-var instanceMethods = {};
+function plus(num1, num2) {
+  return Math.round((num1 + num2) * 100) / 100;
+}
 
+var instanceMethods = {};
 // Execute a recurring payment
 instanceMethods.execute = function(data, done) {
   if (this.kind === constant.PAYMENT_TYPE.RECURRING) {
-    this.accruedAmount += data.amount;
+    this.accruedAmount = plus(this.accruedAmount || 0, data.amount);
     var now = new Date();
     this.lastBilling = now;
     this.history.push({
