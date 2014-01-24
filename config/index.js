@@ -1,10 +1,10 @@
 var nconf = require('nconf');
 
 var defaults = {
-  host: 'localhost:3000',
+  host: process.env.HOST_NAME || 'localhost:3000',
   database: {
     driver: 'mongodb',
-    url: 'mongodb://localhost/paymentServer-dev',
+    url: '' || process.env.MONGOLAB_URI,
     options: {}
   },
   paypal: {
@@ -20,6 +20,9 @@ var defaults = {
 
 var config = {
   development: {
+    database: {
+      url: process.env.MONGOLAB_URI || 'mongodb://localhost/paymentServer-dev',
+    },
     paypal: {
       applicationId: 'APP-80W284485P519543T',
     }
@@ -30,9 +33,6 @@ var config = {
     },
   },
   production: {
-    database: {
-      url: '' || process.env.MONGOLAB_URI,
-    },
     paypal: {
       host: 'www.paypal.com',
     }
