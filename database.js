@@ -22,3 +22,7 @@ exports.init = function(next) {
     process.nextTick(next);
   }
 };
+
+exports.disconnect = function(fn) {
+  mongoose.disconnect(fn);
+};

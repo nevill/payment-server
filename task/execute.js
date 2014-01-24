@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+var async = require('async');
 var util = require('util');
 var url = require('url');
 
@@ -29,7 +30,7 @@ var cancelUrl = url.format({
 
 var paypalClient = new Paypal(nconf.get('paypal'));
 
-function execute(payment) {
+function execute(payment, next) {
   debug('Execute payment: %s ...', payment.id);
   // prepare a payment request body
   var data = payment.composePayRequestData();
@@ -39,6 +40,9 @@ function execute(payment) {
   paypalClient.pay(data, function(err, body) {
     if (err) {
       console.error(err.message);
+      // don't pass the err to `next`
+      // we want other payments get executed
+      next();
     } else {
       debug(util.inspect(body, {
         depth: null
@@ -52,6 +56,9 @@ function execute(payment) {
         if (err) {
           console.error(err.message);
         }
+        // don't pass the err to `next`
+        // we want other payments get executed
+        next();
       });
     }
   });
@@ -62,7 +69,7 @@ db.init(function() {
     if (err) {
       console.error(err.message);
     } else {
-      payments.forEach(execute);
+      async.each(payments, execute, db.disconnect);
     }
   });
 });
