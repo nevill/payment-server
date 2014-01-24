@@ -30,6 +30,9 @@ var PaymentSchema = new mongoose.Schema({
     type: String,
     enum: Object.keys(constant.PAYMENT_PERIOD)
   },
+  receivers: [{
+    type: String // receiver's email address
+  }],
   senderEmail: {
     type: String
   },
@@ -59,12 +62,17 @@ var periodMap = {
   MONTHLY: 'M',
   ANNUALLY: 'y'
 };
+
+// set attribute nextBilling
 PaymentSchema.pre('save', true, function(next, done) {
   next();
-  // initialize nextBilling date
-  if (this.isNew && this.kind === constant.PAYMENT_TYPE.RECURRING) {
+  if (this.kind === constant.PAYMENT_TYPE.RECURRING) {
     var period = periodMap[this.period];
-    this.nextBilling = moment(this.startingAt).add(period, 1);
+    if (this.isNew) {
+      this.nextBilling = moment(this.startingAt).add(period, 1);
+    } else {
+      this.nextBilling = moment(this.lastBilling).add(period, 1);
+    }
   }
   done();
 });

@@ -51,12 +51,33 @@ describe('Payment Model', function() {
         callbackUrl: 'https://localhost/paypal?id=someRandomId28472329'
       });
     });
+
     shouldStoreToDb();
 
     it('should have attribute `nextBilling`', function() {
       should.exist(this.payment.nextBilling);
       this.payment.nextBilling.should.eql(
-        new Date(this.payment.startingAt.valueOf() + 1000 * 3600 * 24));
+        new Date(this.payment.startingAt.valueOf() + 1000 * 86400));
+    });
+
+    describe('When execute a payment', function() {
+      before(function(done) {
+        var data = {
+          payKey: 'AP-TestingPayKey',
+          amount: 2.93,
+          receivers: ['cause@example.com']
+        };
+        this.billingDay = this.payment.nextBilling;
+        this.payment.execute(data, done);
+      });
+
+      it('should set attribute `lastBilling`', function() {
+        var lastBilling = this.payment.lastBilling;
+        should.exist(lastBilling);
+        lastBilling.should.within(this.billingDay, new Date());
+        this.payment.nextBilling.should.within(
+          lastBilling.valueOf(), lastBilling.valueOf() + 1000 * 86400);
+      });
     });
   });
 });
