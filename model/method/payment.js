@@ -40,10 +40,11 @@ instanceMethods.execute = function(data, done) {
 instanceMethods.composePayRequestData = function() {
   var receivers = [];
 
+  var amount = this.amount;
   this.receivers.forEach(function(email) {
     receivers.push({
       email: email,
-      amount: this.amount
+      amount: amount
     });
   });
 

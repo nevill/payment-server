@@ -56,6 +56,7 @@ describe('Payment Instance', function() {
         senderEmail: 'guest@example.com',
         amount: 1.99,
         period: 'DAILY',
+        receivers: ['someone@example.com'],
         callbackUrl: 'https://localhost/paypal?id=someRandomId28472329'
       });
     });
@@ -67,6 +68,18 @@ describe('Payment Instance', function() {
           new Date(payment.startingAt.valueOf() + 1000 * 86400));
         done();
       });
+    });
+
+    it('should componse a pay request data', function() {
+      var data = this.payment.composePayRequestData();
+      data.receiverList.receiver.should.have.length(1);
+      var receiver = data.receiverList.receiver[0];
+      receiver.email.should.eql('someone@example.com');
+      receiver.amount.should.eql(1.99);
+      data.senderEmail.should.eql('guest@example.com');
+      data.actionType.should.eql('PAY');
+      data.memo.should.be.type('string');
+      should(data.memo.indexOf(1.99)).not.eql(-1);
     });
 
     describe('When execute a payment', function() {
