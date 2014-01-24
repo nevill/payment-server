@@ -1,6 +1,7 @@
 var nconf = require('nconf');
 
 var defaults = {
+  host: 'localhost:3000',
   database: {
     driver: 'mongodb',
     url: 'mongodb://localhost/paymentServer-dev',
@@ -17,6 +18,9 @@ var defaults = {
 
 var config = {
   development: {
+    paypal: {
+      applicationId: 'APP-80W284485P519543T',
+    }
   },
   test: {
     database: {
