@@ -1,9 +1,6 @@
 var mongoose = require('mongoose');
-var nconf = require('nconf');
+var nconf = require('../config');
 var async = require('async');
-
-var loadConfig = require('../config');
-loadConfig();
 
 function handleDbError(err) {
   if (err) {

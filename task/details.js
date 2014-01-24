@@ -1,9 +1,7 @@
 #!/usr/bin/env node
 var util = require('util');
 var nopt = require('nopt');
-var nconf = require('nconf');
-
-var loadConfig = require('../config');
+var nconf = require('../config');
 var Paypal = require('../lib/paypal');
 
 var knownOpts = {
@@ -33,8 +31,6 @@ if (remains.length === 0) {
   return;
 }
 delete parsed.argv;
-
-loadConfig();
 
 var paypalClient = new Paypal(nconf.get('paypal'));
 var key = remains.shift();

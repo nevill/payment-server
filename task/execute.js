@@ -2,14 +2,11 @@
 
 var util = require('util');
 var url = require('url');
-var nconf = require('nconf');
-
-var loadConfig = require('../config');
+var nconf = require('../config');
 var Paypal = require('../lib/paypal');
 var Payment = require('../model').Payment;
 var db = require('../database');
 
-loadConfig();
 var paypalClient = new Paypal(nconf.get('paypal'));
 
 var debug = function() {};

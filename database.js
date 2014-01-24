@@ -1,8 +1,5 @@
 var mongoose = require('mongoose');
-var nconf = require('nconf');
-
-var loadConfig = require('./config');
-loadConfig();
+var nconf = require('./config');
 
 var callbacks = [];
 if (mongoose.connection.readyState !== 1) {

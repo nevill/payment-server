@@ -39,8 +39,8 @@ var config = {
   }
 };
 
-module.exports = function() {
-  var env = process.env.NODE_ENV || 'development';
-  nconf.overrides(config[env]);
-  nconf.defaults(defaults);
-};
+var env = process.env.NODE_ENV || 'development';
+nconf.overrides(config[env]);
+nconf.defaults(defaults);
+
+module.exports = nconf;
