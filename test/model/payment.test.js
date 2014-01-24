@@ -62,13 +62,15 @@ describe('Payment Model', function() {
 
     describe('When execute a payment', function() {
       before(function(done) {
-        var data = {
+        this.invoice = {
           payKey: 'AP-TestingPayKey',
           amount: 2.93,
           receivers: ['cause@example.com']
         };
         this.billingDay = this.payment.nextBilling;
-        this.payment.execute(data, done);
+        this.accruedAmount = this.payment.accruedAmount;
+
+        this.payment.execute(this.invoice, done);
       });
 
       it('should set attribute `lastBilling`', function() {
@@ -77,6 +79,9 @@ describe('Payment Model', function() {
         lastBilling.should.within(this.billingDay, new Date());
         this.payment.nextBilling.should.within(
           lastBilling.valueOf(), lastBilling.valueOf() + 1000 * 86400);
+        this.payment.accruedAmount.should.eql(
+          this.accruedAmount + this.invoice.amount);
+        this.payment.history.should.have.length(1);
       });
     });
   });
