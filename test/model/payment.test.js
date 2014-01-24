@@ -7,16 +7,23 @@ before(function(done) {
   db.init(done);
 });
 
-var shouldStoreToDb = function() {
-  it('should store to database successfully', function(done) {
-    this.payment.save(function(err) {
-      should.not.exist(err);
-      done();
+describe('Payment Class', function() {
+  before(function(done) {
+    db.loadFixtures(done);
+  });
+
+  describe('Method - findDues', function() {
+    it('should list all the payments will be executed', function(done) {
+      Payment.findDues(function(err, payments) {
+        should.not.exist(err);
+        payments.length.should.above(0);
+        done();
+      });
     });
   });
-};
+});
 
-describe('Payment Model', function() {
+describe('Payment Instance', function() {
 
   describe('type - Single', function() {
     before(function() {
@@ -30,10 +37,12 @@ describe('Payment Model', function() {
       });
     });
 
-    shouldStoreToDb();
-
-    it('should NOT have attribute `nextBilling`', function() {
-      should.not.exist(this.payment.nextBilling);
+    it('should NOT have attribute `nextBilling`', function(done) {
+      this.payment.save(function(err, payment) {
+        should.not.exist(err);
+        should.not.exist(payment.nextBilling);
+        done();
+      });
     });
   });
 
@@ -52,12 +61,13 @@ describe('Payment Model', function() {
       });
     });
 
-    shouldStoreToDb();
-
-    it('should have attribute `nextBilling`', function() {
-      should.exist(this.payment.nextBilling);
-      this.payment.nextBilling.should.eql(
-        new Date(this.payment.startingAt.valueOf() + 1000 * 86400));
+    it('should have attribute `nextBilling`', function(done) {
+      this.payment.save(function(err, payment) {
+        should.exist(payment.nextBilling);
+        payment.nextBilling.should.eql(
+          new Date(payment.startingAt.valueOf() + 1000 * 86400));
+        done();
+      });
     });
 
     describe('When execute a payment', function() {

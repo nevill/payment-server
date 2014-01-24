@@ -1,4 +1,16 @@
 var constant = require('../constant');
+
+var classMethods = {};
+classMethods.findDues = function(done) {
+  var now = new Date();
+  this.find({
+    kind: constant.PAYMENT_TYPE.RECURRING,
+    nextBilling: {
+      $lte: now,
+    }
+  }, done);
+};
+
 var instanceMethods = {};
 
 // Execute a recurring payment
@@ -15,12 +27,36 @@ instanceMethods.execute = function(data, done) {
     });
 
     this.save(done);
-  }
-  else {
+  } else {
     done();
   }
 };
 
+instanceMethods.composePayRequestData = function() {
+  var receivers = [];
+
+  this.receivers.forEach(function(email) {
+    receivers.push({
+      email: email,
+      amount: this.amount
+    });
+  });
+
+  var data = {
+    receiverList: {
+      receiver: receivers
+    },
+    senderEmail: this.senderEmail,
+    actionType: 'PAY',
+  };
+
+  if (this.kind === constant.PAYMENT_TYPE.RECURRING) {
+    data.preapprovalKey = this.key;
+  }
+  return data;
+};
+
 module.exports = function(schema) {
+  schema.static(classMethods);
   schema.method(instanceMethods);
 };
