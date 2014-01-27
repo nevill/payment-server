@@ -1,7 +1,7 @@
 {
   "name": "payment-server",
   "version": "0.0.0",
-  "description": "Paypal paypment service",
+  "description": "Payment as a service",
   "main": "index.js",
   "engines": {
     "node": "0.10"
