@@ -1,12 +1,25 @@
-var paypal = require('./controller/paypal');
-var payment = require('./controller/payment');
+var PaymentController = require('./controller/payment');
+var PaypalController = require('./controller/paypal');
 
-module.exports = function(app) {
-  app.post('/paypal/ipn', paypal.ipn);
-  app.post('/paypal/preapproval', paypal.preapproval);
-  app.post('/paypal/pay', paypal.pay);
+function bindTo(controller, context) {
+  Object.keys(controller).forEach(function(method) {
+    var func = controller[method];
+    if (typeof func === 'function') {
+      controller[method] = func.bind(context);
+    }
+  });
+  return controller;
+}
 
-  app.post('/payments', payment.create);
+module.exports = function(app, context) {
+  bindTo(PaymentController, context);
+  bindTo(PaypalController, context);
+
+  app.post('/paypal/ipn', PaypalController.ipn);
+  app.post('/paypal/preapproval', PaypalController.preapproval);
+  app.post('/paypal/pay', PaypalController.pay);
+
+  app.post('/payments', PaymentController.create);
 
   app.post('/', function(req, res) {
     res.json(req.body);

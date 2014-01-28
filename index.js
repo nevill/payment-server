@@ -1,10 +1,14 @@
 var express = require('express');
+var nconf = require('./config');
 var busboyParser = require('./middleware/busboyParser');
-var loadRoutes = require('./route');
-require('./config');
 
 var app = express();
 app.use(busboyParser({immediate: true}));
-loadRoutes(app);
+
+var context = {
+  app: app,
+  model: require('./model'),
+};
+require('./route')(app, context);
 
 module.exports = app;
