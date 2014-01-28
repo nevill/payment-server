@@ -67,9 +67,17 @@ exports.preapproval = function(req, res) {
   paypalClient.preapproval(requestObj, function(err, body) {
     if (err) {
       //TODO use a middleware to response the error
-      res.json({error: err.message});
+      res.json({
+        error: err.message
+      });
     } else {
-      res.json(body);
+      var link = paypalClient.createCommandLink({
+        cmd: '_ap-preapproval',
+        preapprovalkey: body.preapprovalKey
+      });
+      res.json({
+        link: link
+      });
     }
   });
 };
@@ -92,9 +100,17 @@ exports.pay = function(req, res) {
 
   paypalClient.pay(requestObj, function(err, body) {
     if (err) {
-      res.json({error: err.message});
+      res.json({
+        error: err.message
+      });
     } else {
-      res.json(body);
+      var link = paypalClient.createCommandLink({
+        cmd: '_ap-payment',
+        paykey: body.payKey
+      });
+      res.json({
+        link: link
+      });
     }
   });
 };
