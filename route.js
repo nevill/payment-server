@@ -3,6 +3,8 @@ var payment = require('./controller/payment');
 
 module.exports = function(app) {
   app.post('/paypal/ipn', paypal.ipn);
+  app.post('/paypal/preapproval', paypal.preapproval);
+  app.post('/paypal/pay', paypal.pay);
 
   app.post('/payments', payment.create);
 

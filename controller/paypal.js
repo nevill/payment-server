@@ -2,6 +2,9 @@ var https = require('https');
 var qs = require('querystring');
 var nconf = require('nconf');
 
+var Paypal = require('../lib/paypal');
+var paypalClient = new Paypal(nconf.get('paypal'));
+
 exports.ipn = function(req, res) {
   var verify = function(params, callback) {
     var body = qs.stringify(params);
@@ -10,7 +13,9 @@ exports.ipn = function(req, res) {
       host: nconf.get('paypal:host'),
       method: 'POST',
       path: '/cgi-bin/webscr?cmd=_notify-validate',
-      headers: {'Content-Length': body.length}
+      headers: {
+        'Content-Length': body.length
+      }
     };
 
     var httpReq = https.request(options, function(httpResp) {
@@ -37,11 +42,59 @@ exports.ipn = function(req, res) {
     if (err) {
       //TODO log the error response
       console.log('err in verify response ===>', err);
-    }
-    else {
+    } else {
       console.log('verify response ===>', resp);
     }
   });
 
   res.send(200);
+};
+
+exports.preapproval = function(req, res) {
+  var data = req.body;
+  var requestObj = {
+    startingDate: data.startingDate,
+    endingDate: data.endingDate,
+    period: data.period,
+    maxAmountPerPayment: data.maxAmountPerPayment,
+    maxTotalAmountOfAllPayments: data.maxTotalAmountOfAllPayments,
+    returnUrl: data.returnUrl,
+    cancelUrl: data.cancelUrl,
+    ipnNotificationUrl: data.ipnNotificationUrl,
+    memo: data.memo,
+  };
+
+  paypalClient.preapproval(requestObj, function(err, body) {
+    if (err) {
+      //TODO use a middleware to response the error
+      res.json({error: err.message});
+    } else {
+      res.json(body);
+    }
+  });
+};
+
+exports.pay = function(req, res) {
+  var data = req.body;
+  var requestObj = {
+    receiverList: {
+      receiver: [{
+        email: data.receiver,
+        amount: data.amount
+      }]
+    },
+    actionType: 'CREATE',
+    returnUrl: data.returnUrl,
+    cancelUrl: data.cancelUrl,
+    ipnNotificationUrl: data.ipnNotificationUrl,
+    memo: data.memo,
+  };
+
+  paypalClient.pay(requestObj, function(err, body) {
+    if (err) {
+      res.json({error: err.message});
+    } else {
+      res.json(body);
+    }
+  });
 };
