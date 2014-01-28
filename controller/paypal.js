@@ -2,9 +2,6 @@ var https = require('https');
 var qs = require('querystring');
 var nconf = require('nconf');
 
-var Paypal = require('../lib/paypal');
-var paypalClient = new Paypal(nconf.get('paypal'));
-
 exports.ipn = function(req, res) {
   var verify = function(params, callback) {
     var body = qs.stringify(params);
@@ -64,6 +61,8 @@ exports.preapproval = function(req, res) {
     memo: data.memo,
   };
 
+
+  var paypalClient = this.app.get('paypalClient');
   paypalClient.preapproval(requestObj, function(err, body) {
     if (err) {
       //TODO use a middleware to response the error
@@ -98,6 +97,7 @@ exports.pay = function(req, res) {
     memo: data.memo,
   };
 
+  var paypalClient = this.app.get('paypalClient');
   paypalClient.pay(requestObj, function(err, body) {
     if (err) {
       res.json({
