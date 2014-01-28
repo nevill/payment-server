@@ -1,9 +1,10 @@
 var should = require('should');
 var request = require('supertest');
 
-var db = require('../database');
-var models = db.models;
-var app = require('../../');
+var common = require('./common');
+var app = common.app;
+var db = common.db;
+var model = db.models;
 
 before(function(done) {
   db.init(done);
@@ -20,7 +21,7 @@ describe('Payment creation', function() {
       callbackUrl: 'https://localhost/paypal?id=someRandomId28472329'
     };
 
-    models.Payment.count(function(err, total) {
+    model.Payment.count(function(err, total) {
       should.not.exist(err);
       request(app)
         .post('/payments')
@@ -29,7 +30,7 @@ describe('Payment creation', function() {
         .expect(201)
         .end(function(err) {
           should.not.exist(err);
-          models.Payment.count(function(err, newTotal) {
+          model.Payment.count(function(err, newTotal) {
             newTotal.should.eql(total + 1);
             done();
           });

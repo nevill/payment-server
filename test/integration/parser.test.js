@@ -2,7 +2,7 @@ var qs = require('qs');
 var should = require('should');
 var request = require('supertest');
 
-var app = require('../../');
+var app = require('./common').app;
 
 describe('When send a JSON request', function() {
   it('should response with it', function(done) {
