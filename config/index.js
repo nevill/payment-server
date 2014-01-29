@@ -9,6 +9,7 @@ var defaults = {
   },
   paypal: {
     host: 'www.sandbox.paypal.com',
+    endpoint: 'svcs.sandbox.paypal.com',
     userId: '' || process.env.PP_UID,
     password: '' || process.env.PP_PASSWORD,
     signature: '' || process.env.PP_SIGNATURE,
@@ -35,6 +36,7 @@ var config = {
   production: {
     paypal: {
       host: 'www.paypal.com',
+      endpoint: 'svcs.paypal.com'
     }
   }
 };
