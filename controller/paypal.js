@@ -1,11 +1,9 @@
 exports.ipn = function(req, res) {
   var paypalClient = this.app.get('paypalClient');
-  paypalClient.verify(req.body, function(err, resp) {
+  paypalClient.verify(req.body, function(err) {
     if (err) {
       //TODO log the error response
       console.log('err in verify response ===>', err);
-    } else {
-      console.log('verify response ===>', resp.body);
     }
   });
 
