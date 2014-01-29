@@ -37,7 +37,8 @@ exports.preapproval = function(req, res) {
         preapprovalkey: body.preapprovalKey
       });
       res.json({
-        link: link
+        link: link,
+        preapprovalKey: body.preapprovalKey
       });
     }
   });
@@ -71,7 +72,8 @@ exports.pay = function(req, res) {
         paykey: body.payKey
       });
       res.json({
-        link: link
+        link: link,
+        payKey: body.payKey
       });
     }
   });

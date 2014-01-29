@@ -92,9 +92,11 @@ describe('POST /paypal/pay', function() {
       .send(params)
       .expect(200)
       .end(function(err, res) {
-        should.exist(res.body.link);
-        var link = res.body.link;
-        link.should.match(/sandbox.+cmd=_ap-payment.+paykey=AP-\w+/);
+        var body = res.body;
+        should.exist(body.link);
+        should.exist(body.payKey);
+        body.link
+          .should.match(/sandbox.+cmd=_ap-payment.+paykey=AP-\w+/);
         done();
       });
   });
@@ -133,10 +135,10 @@ describe('POST /paypal/preapproval', function() {
       .send(params)
       .expect(200)
       .end(function(err, res) {
-        should.exist(res.body.link);
-        var link = res.body.link;
-        link
-          .should
+        var body = res.body;
+        should.exist(body.link);
+        should.exist(body.preapprovalKey);
+        body.link.should
           .match(/sandbox.+cmd=_ap-preapproval.+preapprovalkey=PA-\w+/);
         done();
       });
