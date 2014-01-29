@@ -247,6 +247,10 @@ describe('Paypal#verify', function() {
       .reply(200, 'VALID');
   });
 
+  after(function() {
+    nock.restore();
+  });
+
   it('should be called with a callback', function(done) {
     var body = {
       name: 'Dylan Thomas',
