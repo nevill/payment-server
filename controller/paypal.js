@@ -1,3 +1,5 @@
+var async = require('async');
+
 exports.ipn = function(req, res) {
   var paypalClient = this.app.get('paypalClient');
   paypalClient.verify(req.body, function(err) {
@@ -45,36 +47,49 @@ exports.preapproval = function(req, res) {
 };
 
 exports.pay = function(req, res) {
-  var data = req.body;
-  var requestObj = {
-    receiverList: {
-      receiver: [{
-        email: data.receiver,
-        amount: data.amount
-      }]
-    },
-    actionType: 'CREATE',
-    returnUrl: data.returnUrl,
-    cancelUrl: data.cancelUrl,
-    ipnNotificationUrl: data.ipnNotificationUrl,
-    memo: data.memo,
-  };
-
+  var Payment = this.model.Payment;
   var paypalClient = this.app.get('paypalClient');
-  paypalClient.pay(requestObj, function(err, body) {
+
+  async.waterfall([
+    function(next) {
+      Payment.create(req.body, next);
+    },
+    function(payment, next) {
+      //TODO replace requestObj with payment.composePayRequestData
+      var data = req.body;
+      var requestObj = {
+        receiverList: {
+          receiver: [{
+            email: data.receiver,
+            amount: data.amount
+          }]
+        },
+        actionType: 'CREATE',
+        returnUrl: data.returnUrl,
+        cancelUrl: data.cancelUrl,
+        ipnNotificationUrl: data.ipnNotificationUrl,
+        memo: data.memo,
+      };
+
+      paypalClient.pay(requestObj, next);
+    },
+    function(body, next) {
+      var link = paypalClient.createCommandLink({
+        cmd: '_ap-payment',
+        paykey: body.payKey
+      });
+      next(null, {
+        link: link,
+        payKey: body.payKey
+      });
+    },
+  ], function(err, respBody) {
     if (err) {
       res.json({
         error: err.message
       });
     } else {
-      var link = paypalClient.createCommandLink({
-        cmd: '_ap-payment',
-        paykey: body.payKey
-      });
-      res.json({
-        link: link,
-        payKey: body.payKey
-      });
+      res.json(respBody);
     }
   });
 };
