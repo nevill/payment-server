@@ -1,5 +1,7 @@
+var url = require('url');
 var util = require('util');
 var nconf = require('nconf');
+var _ = require('underscore');
 var constant = require('../constant');
 
 var classMethods = {};
@@ -53,12 +55,28 @@ instanceMethods.composePayRequestData = function() {
       receiver: receivers
     },
     senderEmail: this.senderEmail,
-    actionType: 'PAY',
     memo: util.format(nconf.get('paypal:memoTemplate'), this.amount),
   };
 
   if (this.kind === constant.PAYMENT_TYPE.RECURRING) {
-    data.preapprovalKey = this.key;
+    _.extend(data, {
+      actionType: 'PAY',
+      preapprovalKey: this.key
+    });
+  } else if (this.kind === constant.PAYMENT_TYPE.SINGLE) {
+    var urlObj = {
+      host: nconf.get('host'),
+      protocol: nconf.get('protocol'),
+      pathname: '/paypal/ipn',
+      query: {
+        id: this.id
+      },
+    };
+
+    _.extend(data, {
+      actionType: 'CREATE',
+      ipnNotificationUrl: url.format(urlObj),
+    });
   }
   return data;
 };

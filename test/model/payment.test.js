@@ -30,6 +30,7 @@ describe('Payment Instance', function() {
       this.payment = new Payment({
         kind: 'SINGLE',
         key: 'A Random Pay Key',
+        receivers: ['mike@example.com'],
         senderEmail: 'guest@example.com',
         amount: 9.99,
         status: 'COMPLETED',
@@ -43,6 +44,24 @@ describe('Payment Instance', function() {
         should.not.exist(payment.nextBilling);
         done();
       });
+    });
+
+    it('should componse a pay request package', function() {
+      var data = this.payment.composePayRequestData();
+
+      should.exist(data.ipnNotificationUrl);
+      data.ipnNotificationUrl.should.include(this.payment.id);
+
+      data.receiverList.receiver.should.have.length(1);
+      var receiver = data.receiverList.receiver[0];
+      receiver.email.should.eql('mike@example.com');
+      receiver.amount.should.eql(9.99);
+
+      data.actionType.should.eql('CREATE');
+      data.senderEmail.should.eql('guest@example.com');
+
+      data.memo.should.be.type('string');
+      data.memo.indexOf(9.99).should.not.eql(-1);
     });
   });
 
@@ -70,7 +89,7 @@ describe('Payment Instance', function() {
       });
     });
 
-    it('should componse a pay request data', function() {
+    it('should componse a pay request package', function() {
       var data = this.payment.composePayRequestData();
       data.receiverList.receiver.should.have.length(1);
       var receiver = data.receiverList.receiver[0];

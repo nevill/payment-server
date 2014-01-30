@@ -1,6 +1,7 @@
 var nconf = require('nconf');
 
 var defaults = {
+  protocol: process.env.ENABLE_HTTPS ? 'https' : 'http',
   host: process.env.HOST_NAME || 'localhost:3000',
   database: {
     driver: 'mongodb',
@@ -34,6 +35,8 @@ var config = {
     },
   },
   production: {
+    // should always using https in production
+    protocol: 'https',
     paypal: {
       host: 'www.paypal.com',
       endpoint: 'svcs.paypal.com'
