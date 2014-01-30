@@ -46,6 +46,10 @@ exports.preapproval = function(req, res) {
   });
 };
 
+/**
+ *  Do a single payment
+ *  Required params: Payment Object + returnUrl + cancelUrl
+ */
 exports.pay = function(req, res) {
   var Payment = this.model.Payment;
   var paypalClient = this.app.get('paypalClient');
@@ -55,23 +59,12 @@ exports.pay = function(req, res) {
       Payment.create(req.body, next);
     },
     function(payment, next) {
-      //TODO replace requestObj with payment.composePayRequestData
       var data = req.body;
-      var requestObj = {
-        receiverList: {
-          receiver: [{
-            email: data.receiver,
-            amount: data.amount
-          }]
-        },
-        actionType: 'CREATE',
-        returnUrl: data.returnUrl,
-        cancelUrl: data.cancelUrl,
-        ipnNotificationUrl: data.ipnNotificationUrl,
-        memo: data.memo,
-      };
-
-      paypalClient.pay(requestObj, next);
+      paypalClient.pay(
+        payment.composePayRequestData({
+          returnUrl: data.returnUrl,
+          cancelUrl: data.cancelUrl,
+        }), next);
     },
     function(body, next) {
       var link = paypalClient.createCommandLink({

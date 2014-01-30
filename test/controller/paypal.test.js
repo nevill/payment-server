@@ -67,8 +67,9 @@ describe('POST /paypal/ipn', function() {
 
 describe('POST /paypal/pay', function() {
   before(function(done) {
-    this.stub = sinon.stub(paypalClient, '_httpsRequest');
-    this.stub.callsArgWith(2, null, {
+    this.mock = sinon.mock(paypalClient);
+    this.expect = this.mock.expects('_httpsRequest');
+    this.expect.callsArgWith(2, null, {
       body: JSON.stringify({
         payKey: 'AP-Some3274Random93750Key183'
       })
@@ -82,24 +83,19 @@ describe('POST /paypal/pay', function() {
   });
 
   after(function() {
-    this.stub.restore();
+    this.mock.restore();
   });
 
   it('should response with a paypal page link', function(done) {
     var params = {
-      receiverList: {
-        receiver: [{
-          email: 'buyer@example.com',
-          amount: 19.98
-        }]
-      },
-      actionType: 'CREATE',
+      receivers: ['buyer@example.com'],
+      amount: 19.98,
+      kind: 'SINGLE',
       returnUrl: 'https://example.com/success',
       cancelUrl: 'https://example.com/cancel',
-      ipnNotificationUrl: 'https://example.com/ipn',
-      memo: 'Give $19.98 away to the buyer',
     };
 
+    var expect = this.expect;
     var numOfPayments = this.numOfPayments;
     request(app)
       .post('/paypal/pay')
@@ -112,6 +108,20 @@ describe('POST /paypal/pay', function() {
         should.exist(body.payKey);
         body.link
           .should.match(/sandbox.+cmd=_ap-payment.+paykey=AP-\w+/);
+
+        expect.calledWithMatch(function(value) {
+          should.exist(value.receiverList.receiver);
+          value.receiverList.receiver.length.should.above(0);
+
+          value.should.have.properties('currencyCode', 'memo',
+            'requestEnvelope', 'actionType',
+            'returnUrl', 'cancelUrl');
+          return true;
+        }, function(value) {
+          value.path.should.eql('/AdaptivePayments/Pay');
+          return true;
+        }, sinon.match.func).should.eql(true);
+
 
         model.Payment.count(function(err, num) {
           num.should.eql(numOfPayments + 1);

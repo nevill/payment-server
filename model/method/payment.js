@@ -39,7 +39,7 @@ instanceMethods.execute = function(data, done) {
   }
 };
 
-instanceMethods.composePayRequestData = function() {
+instanceMethods.composePayRequestData = function(options) {
   var receivers = [];
 
   var amount = this.amount;
@@ -50,13 +50,13 @@ instanceMethods.composePayRequestData = function() {
     });
   });
 
-  var data = {
+  var data = _.defaults({
     receiverList: {
       receiver: receivers
     },
     senderEmail: this.senderEmail,
     memo: util.format(nconf.get('paypal:memoTemplate'), this.amount),
-  };
+  }, options);
 
   if (this.kind === constant.PAYMENT_TYPE.RECURRING) {
     _.extend(data, {
