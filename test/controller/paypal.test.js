@@ -90,7 +90,6 @@ describe('POST /paypal/pay', function() {
     var params = {
       receivers: ['buyer@example.com'],
       amount: 19.98,
-      kind: 'SINGLE',
       returnUrl: 'https://example.com/success',
       cancelUrl: 'https://example.com/cancel',
     };

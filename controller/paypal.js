@@ -1,4 +1,5 @@
 var async = require('async');
+var _ = require('underscore');
 
 exports.ipn = function(req, res) {
   var paypalClient = this.app.get('paypalClient');
@@ -31,7 +32,9 @@ exports.preapproval = function(req, res) {
 
   async.waterfall([
     function(next) {
-      Payment.create(req.body, next);
+      Payment.create(_.extend({
+        kind: 'RECURRING'
+      }, req.body), next);
     },
     function(payment, next) {
       paypalClient.preapproval(requestObj, next);
@@ -67,7 +70,9 @@ exports.pay = function(req, res) {
 
   async.waterfall([
     function(next) {
-      Payment.create(req.body, next);
+      Payment.create(_.extend({
+        kind: 'SINGLE'
+      }, req.body), next);
     },
     function(payment, next) {
       var data = req.body;
