@@ -3,8 +3,16 @@ var sinon = require('sinon');
 var should = require('should');
 var request = require('supertest');
 
-var app = require('./common').app;
+var common = require('./common');
+var app = common.app;
+var db = common.db;
+var model = db.models;
+
 var paypalClient = app.get('paypalClient');
+
+before(function(done) {
+  db.init(done);
+});
 
 describe('POST /paypal/ipn', function() {
   before(function() {
@@ -58,12 +66,18 @@ describe('POST /paypal/ipn', function() {
 });
 
 describe('POST /paypal/pay', function() {
-  before(function() {
+  before(function(done) {
     this.stub = sinon.stub(paypalClient, '_httpsRequest');
     this.stub.callsArgWith(2, null, {
       body: JSON.stringify({
         payKey: 'AP-Some3274Random93750Key183'
       })
+    });
+
+    var self = this;
+    model.Payment.count(function(err, total) {
+      self.numOfPayments = total;
+      done();
     });
   });
 
@@ -86,6 +100,7 @@ describe('POST /paypal/pay', function() {
       memo: 'Give $19.98 away to the buyer',
     };
 
+    var numOfPayments = this.numOfPayments;
     request(app)
       .post('/paypal/pay')
       .set('Content-Type', 'application/json')
@@ -97,7 +112,11 @@ describe('POST /paypal/pay', function() {
         should.exist(body.payKey);
         body.link
           .should.match(/sandbox.+cmd=_ap-payment.+paykey=AP-\w+/);
-        done();
+
+        model.Payment.count(function(err, num) {
+          num.should.eql(numOfPayments + 1);
+          done();
+        });
       });
   });
 });
