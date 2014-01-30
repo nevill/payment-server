@@ -132,17 +132,24 @@ describe('POST /paypal/pay', function() {
 });
 
 describe('POST /paypal/preapproval', function() {
-  before(function() {
-    this.stub = sinon.stub(paypalClient, '_httpsRequest');
-    this.stub.callsArgWith(2, null, {
+  before(function(done) {
+    this.mock = sinon.mock(paypalClient);
+    this.expect = this.mock.expects('_httpsRequest');
+    this.expect.callsArgWith(2, null, {
       body: JSON.stringify({
         preapprovalKey: 'PA-Some294Random5917501Key043'
       })
     });
+
+    var self = this;
+    model.Payment.count(function(err, total) {
+      self.numOfPayments = total;
+      done();
+    });
   });
 
   after(function() {
-    this.stub.restore();
+    this.mock.restore();
   });
 
   it('should response with a paypal page link', function(done) {
@@ -154,10 +161,10 @@ describe('POST /paypal/preapproval', function() {
       endingDate: new Date('2014-12-31'),
       returnUrl: 'https://example.com/success',
       cancelUrl: 'https://example.com/cancel',
-      ipnNotificationUrl: 'https://example.com/ipn',
-      memo: 'Subscribe to the Monthly Show',
     };
 
+    var expect = this.expect;
+    var numOfPayments = this.numOfPayments;
     request(app)
       .post('/paypal/preapproval')
       .set('Content-Type', 'application/json')
@@ -169,7 +176,22 @@ describe('POST /paypal/preapproval', function() {
         should.exist(body.preapprovalKey);
         body.link.should
           .match(/sandbox.+cmd=_ap-preapproval.+preapprovalkey=PA-\w+/);
-        done();
+
+        expect.calledWithMatch(function(value) {
+          value.should.have.properties('currencyCode',
+            'requestEnvelope',
+            'startingDate', 'endingDate', 'maxTotalAmountOfAllPayments',
+            'returnUrl', 'cancelUrl', 'ipnNotificationUrl');
+          return true;
+        }, function(value) {
+          value.path.should.eql('/AdaptivePayments/Preapproval');
+          return true;
+        }, sinon.match.func).should.eql(true);
+
+        model.Payment.count(function(err, num) {
+          num.should.eql(numOfPayments + 1);
+          done();
+        });
       });
   });
 });

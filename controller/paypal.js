@@ -26,22 +26,33 @@ exports.preapproval = function(req, res) {
     memo: data.memo,
   };
 
+  var Payment = this.model.Payment;
   var paypalClient = this.app.get('paypalClient');
-  paypalClient.preapproval(requestObj, function(err, body) {
-    if (err) {
-      //TODO use a middleware to response the error
-      res.json({
-        error: err.message
-      });
-    } else {
+
+  async.waterfall([
+    function(next) {
+      Payment.create(req.body, next);
+    },
+    function(payment, next) {
+      paypalClient.preapproval(requestObj, next);
+    },
+    function(body, next) {
       var link = paypalClient.createCommandLink({
         cmd: '_ap-preapproval',
         preapprovalkey: body.preapprovalKey
       });
-      res.json({
+      next(null, {
         link: link,
         preapprovalKey: body.preapprovalKey
       });
+    },
+  ], function(err, respBody) {
+    if (err) {
+      res.json({
+        error: err.message
+      });
+    } else {
+      res.json(respBody);
     }
   });
 };
