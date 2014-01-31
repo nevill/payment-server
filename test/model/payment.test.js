@@ -63,6 +63,16 @@ describe('Payment Instance', function() {
       data.memo.should.be.type('string');
       data.memo.indexOf(9.99).should.not.eql(-1);
     });
+
+    describe('Validation', function() {
+      it('should fail without required attributes', function(done) {
+        this.payment.kind = '';
+        this.payment.validate(function(err) {
+          should.exist(err.errors.kind);
+          done();
+        });
+      });
+    });
   });
 
   describe('type - Recurring', function() {

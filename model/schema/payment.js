@@ -9,6 +9,7 @@ var PaymentSchema = new mongoose.Schema({
   },
   status: {
     type: String,
+    default: constant.PAYMENT_STATUS.CREATED,
     enum: Object.keys(constant.PAYMENT_STATUS)
   },
   key: { // a PayKey or PreapprovalKey
