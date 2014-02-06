@@ -21,6 +21,20 @@ describe('Payment Class', function() {
       });
     });
   });
+
+  describe('Method - createSingle', function() {
+    it('should create a single payment', function(done) {
+      var attrs = {
+        receivers: 'somone@example.com',
+        amount: '10.97',
+        callbackUrl: 'http://localhost:3000/api/donations/randomId9527',
+      };
+      Payment.createSingle(attrs, function(err, payment) {
+        payment.kind.should.eql('SINGLE');
+        done(err);
+      });
+    });
+  });
 });
 
 describe('Payment Instance', function() {

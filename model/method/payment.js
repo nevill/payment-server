@@ -15,6 +15,32 @@ classMethods.findDues = function(done) {
   }, done);
 };
 
+classMethods.createSingle = function(attrs, done) {
+  _.extend(attrs, {
+    kind: constant.PAYMENT_TYPE.SINGLE,
+  });
+
+  attrs.amount = Number(attrs.amount);
+  if (typeof attrs.receivers === 'string') {
+    attrs.receivers = [attrs.receivers];
+  }
+
+  var err = null;
+  if (_.isEmpty(attrs.receivers)) {
+    err = new Error('Please sepecify at least One receiver');
+  } else if (!attrs.amount) {
+    err = new Error('Please specify a valid amount');
+  } else if (_.isEmpty(attrs.callbackUrl)) {
+    err = new Error('Please specify a callback url');
+  }
+
+  if (err) {
+    done(err);
+  } else {
+    this.create(attrs, done);
+  }
+};
+
 function plus(num1, num2) {
   return Math.round((num1 + num2) * 100) / 100;
 }
