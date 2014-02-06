@@ -92,6 +92,7 @@ describe('POST /paypal/pay', function() {
       amount: 19.98,
       returnUrl: 'https://example.com/success',
       cancelUrl: 'https://example.com/cancel',
+      callbackUrl: 'https://example.com/entity/randomId9527'
     };
 
     var expect = this.expect;
@@ -102,7 +103,9 @@ describe('POST /paypal/pay', function() {
       .send(params)
       .expect(200)
       .end(function(err, res) {
+        should.not.exist(err);
         var body = res.body;
+        should.not.exist(body.error);
         should.exist(body.link);
         should.exist(body.payKey);
         body.link

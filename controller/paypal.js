@@ -70,9 +70,7 @@ exports.pay = function(req, res) {
 
   async.waterfall([
     function(next) {
-      Payment.create(_.extend({
-        kind: 'SINGLE'
-      }, req.body), next);
+      Payment.createSingle(req.body, next);
     },
     function(payment, next) {
       var data = req.body;
