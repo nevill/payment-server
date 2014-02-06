@@ -1,8 +1,20 @@
 var url = require('url');
 var util = require('util');
 var nconf = require('nconf');
+var moment = require('moment');
 var _ = require('underscore');
 var constant = require('../constant');
+
+var periodMap = {
+  DAILY: 'd',
+  WEEKLY: 'w',
+  MONTHLY: 'M',
+  ANNUALLY: 'y'
+};
+
+function plus(num1, num2) {
+  return Math.round((num1 + num2) * 100) / 100;
+}
 
 var classMethods = {};
 classMethods.findDues = function(done) {
@@ -40,10 +52,6 @@ classMethods.createSingle = function(attrs, done) {
     this.create(attrs, done);
   }
 };
-
-function plus(num1, num2) {
-  return Math.round((num1 + num2) * 100) / 100;
-}
 
 var instanceMethods = {};
 // Execute a recurring payment
@@ -110,4 +118,18 @@ instanceMethods.composePayRequestData = function(options) {
 module.exports = function(schema) {
   schema.static(classMethods);
   schema.method(instanceMethods);
+
+  // set attribute nextBilling
+  schema.pre('save', true, function(next, done) {
+    next();
+    if (this.kind === constant.PAYMENT_TYPE.RECURRING) {
+      var period = periodMap[this.period];
+      if (this.isNew) {
+        this.nextBilling = moment(this.startingAt).add(period, 1);
+      } else {
+        this.nextBilling = moment(this.lastBilling).add(period, 1);
+      }
+    }
+    done();
+  });
 };

@@ -1,5 +1,4 @@
 var mongoose = require('mongoose');
-var moment = require('moment');
 var constant = require('../constant');
 
 var PaymentSchema = new mongoose.Schema({
@@ -55,27 +54,6 @@ var PaymentSchema = new mongoose.Schema({
   },
 }, {
   collection: 'Payment'
-});
-
-var periodMap = {
-  DAILY: 'd',
-  WEEKLY: 'w',
-  MONTHLY: 'M',
-  ANNUALLY: 'y'
-};
-
-// set attribute nextBilling
-PaymentSchema.pre('save', true, function(next, done) {
-  next();
-  if (this.kind === constant.PAYMENT_TYPE.RECURRING) {
-    var period = periodMap[this.period];
-    if (this.isNew) {
-      this.nextBilling = moment(this.startingAt).add(period, 1);
-    } else {
-      this.nextBilling = moment(this.lastBilling).add(period, 1);
-    }
-  }
-  done();
 });
 
 /**
