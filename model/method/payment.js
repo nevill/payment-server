@@ -109,7 +109,7 @@ instanceMethods.execute = function(data, done) {
   }
 };
 
-instanceMethods.composePayRequestData = function(options) {
+instanceMethods.composePayRequest = function(options) {
   var receivers = [];
 
   var amount = this.amount;

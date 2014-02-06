@@ -64,7 +64,7 @@ exports.pay = function(req, res) {
     function(payment, next) {
       var data = req.body;
       paypalClient.pay(
-        payment.composePayRequestData({
+        payment.composePayRequest({
           returnUrl: data.returnUrl,
           cancelUrl: data.cancelUrl,
         }), next);

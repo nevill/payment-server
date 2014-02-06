@@ -33,7 +33,7 @@ var paypalClient = new Paypal(nconf.get('paypal'));
 function execute(payment, next) {
   debug('Execute payment: %s ...', payment.id);
   // prepare a payment request body
-  var data = payment.composePayRequestData();
+  var data = payment.composePayRequest();
   data.returnUrl = returnUrl;
   data.cancelUrl = cancelUrl;
 

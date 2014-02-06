@@ -79,7 +79,7 @@ describe('Payment Instance', function() {
     });
 
     it('should compose a pay request package', function() {
-      var data = this.payment.composePayRequestData();
+      var data = this.payment.composePayRequest();
 
       should.exist(data.ipnNotificationUrl);
       data.ipnNotificationUrl.should.include(this.payment.id);
@@ -136,7 +136,7 @@ describe('Payment Instance', function() {
     });
 
     it('should compose a pay request package', function() {
-      var data = this.payment.composePayRequestData();
+      var data = this.payment.composePayRequest();
       data.receiverList.receiver.should.have.length(1);
       var receiver = data.receiverList.receiver[0];
       receiver.email.should.eql('someone@example.com');
