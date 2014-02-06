@@ -35,6 +35,24 @@ describe('Payment Class', function() {
       });
     });
   });
+
+  describe('Method - createRecurring', function() {
+    it('should create a recurring payment', function(done) {
+      var attrs = {
+        key: 'some3mv237RandomPreapproval26x0f6o571Key',
+        startingAt: new Date(2013, 11, 31),
+        endingAt: new Date(2014, 11, 31),
+        amount: '16.59',
+        period: 'MONTHLY',
+        receivers: 'somone@example.com',
+        callbackUrl: 'http://localhost:3000/api/donations/randomId9527',
+      };
+      Payment.createRecurring(attrs, function(err, payment) {
+        payment.kind.should.eql('RECURRING');
+        done(err);
+      });
+    });
+  });
 });
 
 describe('Payment Instance', function() {
@@ -60,7 +78,7 @@ describe('Payment Instance', function() {
       });
     });
 
-    it('should componse a pay request package', function() {
+    it('should compose a pay request package', function() {
       var data = this.payment.composePayRequestData();
 
       should.exist(data.ipnNotificationUrl);
@@ -98,7 +116,7 @@ describe('Payment Instance', function() {
         endingAt: new Date(2014, 11, 31),
         senderEmail: 'guest@example.com',
         amount: 1.99,
-        period: 'DAILY',
+        period: 'MONTHLY',
         receivers: ['someone@example.com'],
         callbackUrl: 'https://localhost/paypal?id=someRandomId28472329'
       });
@@ -107,13 +125,12 @@ describe('Payment Instance', function() {
     it('should have attribute `nextBilling`', function(done) {
       this.payment.save(function(err, payment) {
         should.exist(payment.nextBilling);
-        payment.nextBilling.should.eql(
-          new Date(payment.startingAt.valueOf() + 1000 * 86400));
+        payment.nextBilling.should.eql(new Date(2013, 12, 31));
         done();
       });
     });
 
-    it('should componse a pay request package', function() {
+    it('should compose a pay request package', function() {
       var data = this.payment.composePayRequestData();
       data.receiverList.receiver.should.have.length(1);
       var receiver = data.receiverList.receiver[0];
@@ -123,6 +140,27 @@ describe('Payment Instance', function() {
       data.actionType.should.eql('PAY');
       data.memo.should.be.type('string');
       should(data.memo.indexOf(1.99)).not.eql(-1);
+    });
+
+    it('should compose a preapproval request package', function() {
+      var data = this.payment.composePreapprovalRequest({
+        returnUrl: '',
+        cancelUrl: '',
+      });
+
+      data.startingDate.should.eql(this.payment.startingAt);
+      data.endingDate.should.eql(this.payment.endingAt);
+      data.period.should.eql(this.payment.period);
+      data.maxAmountPerPayment.should.eql(this.payment.amount);
+      data.maxTotalAmountOfAllPayments
+        .should.eql(this.payment._calculateTotalAmount());
+      data.ipnNotificationUrl.indexOf(this.payment.id).should.above(-1);
+      should.exist(data.returnUrl);
+      should.exist(data.cancelUrl);
+    });
+
+    it('should return total amount of all the payments', function() {
+      this.payment._calculateTotalAmount().should.eql(23.88);
     });
 
     describe('When execute a payment', function() {
@@ -142,7 +180,7 @@ describe('Payment Instance', function() {
         should.exist(lastBilling);
         lastBilling.should.within(this.billingDay, new Date());
         this.payment.nextBilling.should.within(
-          lastBilling.valueOf(), lastBilling.valueOf() + 1000 * 86400);
+          lastBilling.valueOf(), lastBilling.valueOf() + 31000 * 86400);
         this.payment.accruedAmount.should.eql(amount);
         this.payment.history.should.have.length(1);
       });

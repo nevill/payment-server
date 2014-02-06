@@ -157,12 +157,13 @@ describe('POST /paypal/preapproval', function() {
   it('should response with a paypal page link', function(done) {
     var params = {
       period: 'MONTHLY',
-      maxAmountPerPayment: 9.99,
-      maxTotalAmountOfAllPayments: 1000,
-      startingDate: new Date('2013-12-31'),
-      endingDate: new Date('2014-12-31'),
+      amount: 9.99,
+      receivers: 'someone@example.com',
+      startingAt: new Date(2013, 11, 31),
+      endingAt: new Date(2014, 11, 31),
       returnUrl: 'https://example.com/success',
       cancelUrl: 'https://example.com/cancel',
+      callbackUrl: 'https://example.com/entities/entityId',
     };
 
     var expect = this.expect;
@@ -173,13 +174,16 @@ describe('POST /paypal/preapproval', function() {
       .send(params)
       .expect(200)
       .end(function(err, res) {
+        should.not.exist(err);
         var body = res.body;
+        should.not.exist(body.error);
         should.exist(body.link);
         should.exist(body.preapprovalKey);
         body.link.should
           .match(/sandbox.+cmd=_ap-preapproval.+preapprovalkey=PA-\w+/);
 
         expect.calledWithMatch(function(value) {
+          value.maxTotalAmountOfAllPayments.should.eql(119.88);
           value.should.have.properties('currencyCode',
             'requestEnvelope',
             'startingDate', 'endingDate', 'maxTotalAmountOfAllPayments',

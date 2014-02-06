@@ -1,5 +1,4 @@
 var async = require('async');
-var _ = require('underscore');
 
 exports.ipn = function(req, res) {
   var paypalClient = this.app.get('paypalClient');
@@ -15,29 +14,19 @@ exports.ipn = function(req, res) {
 
 exports.preapproval = function(req, res) {
   var data = req.body;
-  var requestObj = {
-    startingDate: data.startingDate,
-    endingDate: data.endingDate,
-    period: data.period,
-    maxAmountPerPayment: data.maxAmountPerPayment,
-    maxTotalAmountOfAllPayments: data.maxTotalAmountOfAllPayments,
-    returnUrl: data.returnUrl,
-    cancelUrl: data.cancelUrl,
-    ipnNotificationUrl: data.ipnNotificationUrl,
-    memo: data.memo,
-  };
-
   var Payment = this.model.Payment;
   var paypalClient = this.app.get('paypalClient');
 
   async.waterfall([
     function(next) {
-      Payment.create(_.extend({
-        kind: 'RECURRING'
-      }, req.body), next);
+      Payment.createRecurring(req.body, next);
     },
     function(payment, next) {
-      paypalClient.preapproval(requestObj, next);
+      paypalClient.preapproval(
+        payment.composePreapprovalRequest({
+          returnUrl: data.returnUrl,
+          cancelUrl: data.cancelUrl,
+        }), next);
     },
     function(body, next) {
       var link = paypalClient.createCommandLink({
