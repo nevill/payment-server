@@ -99,8 +99,13 @@ describe('Payment Instance', function() {
     describe('Validation', function() {
       it('should fail without required attributes', function(done) {
         this.payment.kind = '';
+        this.payment.status = '';
+        this.payment.callbackUrl = '';
+
         this.payment.validate(function(err) {
           should.exist(err.errors.kind);
+          should.exist(err.errors.status);
+          should.exist(err.errors.callbackUrl);
           done();
         });
       });

@@ -4,4 +4,7 @@ module.exports = function(schema) {
 
   schema.path('status')
     .required(true, 'Must specify a status');
+
+  schema.path('callbackUrl')
+    .required(true, 'Must specify a callback url');
 };
