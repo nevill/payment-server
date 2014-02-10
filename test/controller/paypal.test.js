@@ -67,11 +67,12 @@ describe('POST /paypal/ipn', function() {
 
 describe('POST /paypal/pay', function() {
   before(function(done) {
+    this.payKey = 'AP-Some3274Random93750Key183';
     this.mock = sinon.mock(paypalClient);
     this.expect = this.mock.expects('_httpsRequest');
     this.expect.callsArgWith(2, null, {
       body: JSON.stringify({
-        payKey: 'AP-Some3274Random93750Key183'
+        payKey: this.payKey
       })
     });
 
@@ -94,9 +95,10 @@ describe('POST /paypal/pay', function() {
       cancelUrl: 'https://example.com/cancel',
       callbackUrl: 'https://example.com/entity/randomId9527'
     };
-
+    var payKey = this.payKey;
     var expect = this.expect;
     var numOfPayments = this.numOfPayments;
+
     request(app)
       .post('/paypal/pay')
       .set('Content-Type', 'application/json')
@@ -107,7 +109,7 @@ describe('POST /paypal/pay', function() {
         var body = res.body;
         should.not.exist(body.error);
         should.exist(body.link);
-        should.exist(body.payKey);
+        body.payKey.should.eql(payKey);
         body.link
           .should.match(/sandbox.+cmd=_ap-payment.+paykey=AP-\w+/);
 
@@ -124,10 +126,14 @@ describe('POST /paypal/pay', function() {
           return true;
         }, sinon.match.func).should.eql(true);
 
-
         model.Payment.count(function(err, num) {
           num.should.eql(numOfPayments + 1);
-          done();
+          model.Payment.findOne({
+            key: payKey
+          }, function(err, payment) {
+            should.exist(payment.id);
+            done(err);
+          });
         });
       });
   });
@@ -166,11 +172,10 @@ describe('POST /paypal/preapproval', function() {
       cancelUrl: 'https://example.com/cancel',
       callbackUrl: 'https://example.com/entities/entityId',
     };
-
     var preapprovalKey = this.preapprovalKey;
-
     var expect = this.expect;
     var numOfPayments = this.numOfPayments;
+
     request(app)
       .post('/paypal/preapproval')
       .set('Content-Type', 'application/json')

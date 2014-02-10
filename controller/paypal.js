@@ -27,11 +27,11 @@ exports.preapproval = function(req, res) {
           returnUrl: data.returnUrl,
           cancelUrl: data.cancelUrl,
         }), function(err, body) {
-          payment.key = body.preapprovalKey;
-          next(err, payment);
+          next(err, body.preapprovalKey, payment);
         });
     },
-    function(payment, next) {
+    function(preapprovalKey, payment, next) {
+      payment.key = preapprovalKey;
       payment.save(function(err, payment) {
         next(err, payment);
       });
@@ -75,16 +75,24 @@ exports.pay = function(req, res) {
         payment.composePayRequest({
           returnUrl: data.returnUrl,
           cancelUrl: data.cancelUrl,
-        }), next);
+        }), function(err, body) {
+          next(err, body.payKey, payment);
+        });
     },
-    function(body, next) {
+    function(payKey, payment, next) {
+      payment.key = payKey;
+      payment.save(function(err, payment) {
+        next(err, payment);
+      });
+    },
+    function(payment, next) {
       var link = paypalClient.createCommandLink({
         cmd: '_ap-payment',
-        paykey: body.payKey
+        paykey: payment.key
       });
       next(null, {
         link: link,
-        payKey: body.payKey
+        payKey: payment.key
       });
     },
   ], function(err, respBody) {
