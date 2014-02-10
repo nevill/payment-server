@@ -12,6 +12,10 @@ describe('Payment Class', function() {
     db.loadFixtures(done);
   });
 
+  after(function(done) {
+    db.unloadFixtures(done);
+  });
+
   describe('Method - findDues', function() {
     it('should list all the payments will be executed', function(done) {
       Payment.findDues(function(err, payments) {
@@ -56,6 +60,9 @@ describe('Payment Class', function() {
 });
 
 describe('Payment Instance', function() {
+  after(function(done) {
+    db.dropModels('Payment', done);
+  });
 
   describe('type - Single', function() {
     before(function() {
