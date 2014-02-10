@@ -244,7 +244,7 @@ describe('Paypal#verify', function() {
   before(function() {
     nock('https://www.sandbox.paypal.com')
       .post('/cgi-bin/webscr?cmd=_notify-validate')
-      .reply(200, 'VALID');
+      .reply(200, 'VERIFIED');
   });
 
   after(function() {
@@ -266,9 +266,10 @@ describe('Paypal#verify', function() {
       timestamp: '2014-01-20T10:37:40.531Z'
     };
 
-    paypalClient.verify(body, function(err, resp) {
+    paypalClient.verify(body, function(err, result) {
       should.not.exist(err);
-      resp.body.should.eql('VALID');
+      //jshint expr: true
+      result.should.be.true;
       done();
     });
   });
