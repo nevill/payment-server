@@ -135,11 +135,12 @@ describe('POST /paypal/pay', function() {
 
 describe('POST /paypal/preapproval', function() {
   before(function(done) {
+    this.preapprovalKey = 'PA-Some294Random5917501Key043';
     this.mock = sinon.mock(paypalClient);
     this.expect = this.mock.expects('_httpsRequest');
     this.expect.callsArgWith(2, null, {
       body: JSON.stringify({
-        preapprovalKey: 'PA-Some294Random5917501Key043'
+        preapprovalKey: this.preapprovalKey
       })
     });
 
@@ -166,6 +167,8 @@ describe('POST /paypal/preapproval', function() {
       callbackUrl: 'https://example.com/entities/entityId',
     };
 
+    var preapprovalKey = this.preapprovalKey;
+
     var expect = this.expect;
     var numOfPayments = this.numOfPayments;
     request(app)
@@ -178,7 +181,7 @@ describe('POST /paypal/preapproval', function() {
         var body = res.body;
         should.not.exist(body.error);
         should.exist(body.link);
-        should.exist(body.preapprovalKey);
+        body.preapprovalKey.should.eql(preapprovalKey);
         body.link.should
           .match(/sandbox.+cmd=_ap-preapproval.+preapprovalkey=PA-\w+/);
 
@@ -196,7 +199,12 @@ describe('POST /paypal/preapproval', function() {
 
         model.Payment.count(function(err, num) {
           num.should.eql(numOfPayments + 1);
-          done();
+          model.Payment.findOne({
+            key: preapprovalKey
+          }, function(err, payment) {
+            should.exist(payment.id);
+            done(err);
+          });
         });
       });
   });

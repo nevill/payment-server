@@ -26,16 +26,24 @@ exports.preapproval = function(req, res) {
         payment.composePreapprovalRequest({
           returnUrl: data.returnUrl,
           cancelUrl: data.cancelUrl,
-        }), next);
+        }), function(err, body) {
+          payment.key = body.preapprovalKey;
+          next(err, payment);
+        });
     },
-    function(body, next) {
+    function(payment, next) {
+      payment.save(function(err, payment) {
+        next(err, payment);
+      });
+    },
+    function(payment, next) {
       var link = paypalClient.createCommandLink({
         cmd: '_ap-preapproval',
-        preapprovalkey: body.preapprovalKey
+        preapprovalkey: payment.key
       });
       next(null, {
         link: link,
-        preapprovalKey: body.preapprovalKey
+        preapprovalKey: payment.key
       });
     },
   ], function(err, respBody) {
