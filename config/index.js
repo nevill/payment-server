@@ -31,7 +31,7 @@ var config = {
   },
   test: {
     database: {
-      url: 'mongodb://localhost/paymentServer-test',
+      url: process.env.WERCKER_MONGODB_HOST || 'mongodb://localhost/paymentServer-test',
     },
   },
   production: {
