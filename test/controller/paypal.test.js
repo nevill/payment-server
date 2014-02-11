@@ -1,12 +1,13 @@
 var qs = require('qs');
-var sinon = require('sinon');
 var should = require('should');
+var sinon = require('sinon');
 var request = require('supertest');
 
 var common = require('./common');
 var app = common.app;
 var db = common.db;
 var model = db.models;
+var constant = model.constants;
 
 var paypalClient = app.get('paypalClient');
 
@@ -15,10 +16,19 @@ before(function(done) {
 });
 
 describe('POST /paypal/ipn', function() {
+  before(function(done) {
+    this.paymentId = '52f8c1bee6249c0000000001';
+    db.loadFixtures(done);
+  });
+
+  after(function(done) {
+    db.unloadFixtures(done);
+  });
+
   before(function() {
     this.stub = sinon.stub(paypalClient, '_httpsRequest');
     this.stub.callsArgWith(2, null, {
-      body: 'VALID'
+      body: 'VERIFIED'
     });
 
     this.spy = sinon.spy(paypalClient, 'verify');
@@ -29,39 +39,91 @@ describe('POST /paypal/ipn', function() {
     this.spy.restore();
   });
 
-  it('should response with status 200', function(done) {
-    var params = {
-      name: 'Dylan Thomas',
-      memo: 'Do not go gentle into that good night',
-      amount: 8.51,
-      users: [{
-        name: 'Joe',
-        email: 'joe@example.com'
-      }, {
-        name: 'William',
-        email: 'bill@example.com'
-      }],
-      timestamp: '2014-01-20T10:37:40.531Z'
-    };
-    var spy = this.spy;
-    request(app)
-      .post('/paypal/ipn')
-      .send(qs.stringify(params))
-      .set('Content-Type', 'application/x-www-form-urlencoded')
-      .expect(200)
-      .end(function() {
-        spy.calledWithMatch(function(value) {
-          return value.should.have.properties({
-            name: params.name,
-            memo: params.memo,
-            amount: params.amount.toString(),
-            timestamp: params.timestamp,
-            'users[0][email]': 'joe@example.com',
-            'users[1][name]': 'William'
+  describe('Generic', function() {
+    it('should response with status 200', function(done) {
+      var params = {
+        name: 'Dylan Thomas',
+        memo: 'Do not go gentle into that good night',
+        amount: 8.51,
+        users: [{
+          name: 'Joe',
+          email: 'joe@example.com'
+        }, {
+          name: 'William',
+          email: 'bill@example.com'
+        }],
+        timestamp: '2014-01-20T10:37:40.531Z'
+      };
+      var spy = this.spy;
+      request(app)
+        .post('/paypal/ipn')
+        .send(qs.stringify(params))
+        .set('Content-Type', 'application/x-www-form-urlencoded')
+        .expect(200)
+        .end(function() {
+          spy.calledWithMatch(function(value) {
+            return value.should.have.properties({
+              name: params.name,
+              memo: params.memo,
+              amount: params.amount.toString(),
+              timestamp: params.timestamp,
+              'users[0][email]': 'joe@example.com',
+              'users[1][name]': 'William'
+            });
+          }, sinon.match.func).should.eql(true);
+          done();
+        });
+    });
+  });
+
+  describe('Verfiy preapproval', function() {
+    before(function() {
+      this.senderEmail = 'someone@example.com';
+      this.requestParams = {
+        'max_number_of_payments': '30',
+        'starting_date': '2014-01-21T00:00:00.000Z',
+        'pin_type': 'NOT_REQUIRED',
+        'max_amount_per_payment': '1.05',
+        'currency_code': 'USD',
+        'sender_email': this.senderEmail,
+        'verify_sign': 'AWRhzfmPo8xXIaEBzCxibaq2oZ.Fxh9dwQ6mT8',
+        'test_ipn': '1',
+        'date_of_month': '0',
+        'current_number_of_payments': '0',
+        'preapproval_key': 'PA-SomeRandomKey859kmdf782.781p4u',
+        'ending_date': '2014-02-21T00:00:00.000Z',
+        'approved': 'true',
+        'transaction_type': 'Adaptive Payment PREAPPROVAL',
+        'day_of_week': 'NO_DAY_SPECIFIED',
+        'status': 'ACTIVE',
+        'current_total_amount_of_all_payments': '0.00',
+        'current_period_attempts': '0',
+        'charset': 'windows-1252',
+        'payment_period': '0',
+        'notify_version': 'UNVERSIONED',
+        'max_total_amount_of_all_payments': '10.00'
+      };
+    });
+
+    it('should update the payment model', function(done) {
+      var self = this;
+      var Payment = model.Payment;
+      request(app)
+        .post('/paypal/ipn?' + qs.stringify({
+          id: this.paymentId,
+          action: 'preapproval'
+        }))
+        .send(qs.stringify(this.requestParams))
+        .set('Content-Type', 'application/x-www-form-urlencoded')
+        .expect(200)
+        .end(function() {
+          Payment.findById(self.paymentId, function(err, payment) {
+            payment.senderEmail.should.eql(self.senderEmail);
+            payment.status.should.eql(constant.PAYMENT_STATUS.ACTIVE);
+            done(err);
           });
-        }, sinon.match.func).should.eql(true);
-        done();
-      });
+        });
+    });
   });
 });
 

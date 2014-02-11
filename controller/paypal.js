@@ -2,14 +2,51 @@ var async = require('async');
 
 exports.ipn = function(req, res) {
   var paypalClient = this.app.get('paypalClient');
-  paypalClient.verify(req.body, function(err) {
+  var Payment = this.model.Payment;
+  var constant = this.model.constants;
+
+  var paymentId = req.param('id');
+  // action is one of ['preapproval', 'pay', 'execute']
+  var action = req.param('action');
+
+  async.waterfall([
+    function(next) {
+      paypalClient.verify(req.body, next);
+    },
+    function(result, next) {
+      var err;
+      if (!result) {
+        err = new Error('Unable to validate IPN');
+      }
+      next(err);
+    },
+    function(next) {
+      var query = {
+        _id: paymentId
+      };
+      if (action === 'preapproval') {
+        query.kind = constant.PAYMENT_TYPE.RECURRING;
+      }
+      Payment.findOne(query, next);
+    },
+    function(payment, next) {
+      if (action === 'preapproval') {
+        payment.senderEmail = req.param('sender_email');
+        payment.status = constant.PAYMENT_STATUS.ACTIVE;
+        payment.save(next);
+      }
+      else {
+        next();
+      }
+    }
+  ], function(err) {
     if (err) {
       //TODO log the error response
-      console.log('err in verify response ===>', err);
+      console.log('Error occurred in POST /paypal/ipn:', err);
+      console.log('Query: %s, body: %s', req.query, req.body);
     }
+    res.send(200);
   });
-
-  res.send(200);
 };
 
 exports.preapproval = function(req, res) {

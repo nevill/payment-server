@@ -163,7 +163,8 @@ instanceMethods.composePreapprovalRequest = function(options) {
     protocol: nconf.get('protocol'),
     pathname: '/paypal/ipn',
     query: {
-      id: this.id
+      id: this.id,
+      action: 'preapproval'
     },
   };
 
