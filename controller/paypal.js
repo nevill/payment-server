@@ -1,12 +1,22 @@
 var async = require('async');
 
+var validateAction = function(action) {
+  var validActions = ['preapproval', 'pay', 'execute'];
+  return validActions.indexOf(action) > -1;
+};
+
+var validateIPNStatus = function(action, status) {
+  return (action === 'pay' && status === 'COMPLETED') ||
+    (action === 'preapproval' && status === 'ACTIVE');
+};
+
 exports.ipn = function(req, res) {
   var paypalClient = this.app.get('paypalClient');
   var Payment = this.model.Payment;
   var constant = this.model.constants;
 
   var paymentId = req.param('id');
-  // action is one of ['preapproval', 'pay', 'execute']
+  var status = req.param('status');
   var action = req.param('action');
 
   async.waterfall([
@@ -21,24 +31,38 @@ exports.ipn = function(req, res) {
       next(err);
     },
     function(next) {
-      var query = {
-        _id: paymentId
-      };
-      if (action === 'preapproval') {
-        query.kind = constant.PAYMENT_TYPE.RECURRING;
-      }
-      Payment.findOne(query, next);
-    },
-    function(payment, next) {
-      if (action === 'preapproval') {
-        payment.senderEmail = req.param('sender_email');
-        payment.status = constant.PAYMENT_STATUS.ACTIVE;
-        payment.save(next);
-      }
-      else {
+      if (validateAction(action)) {
+        async.waterfall([
+          function(next) {
+            var err;
+            if (!validateIPNStatus(action, status)) {
+              err = new Error('Invalid IPN status');
+            }
+            next(err);
+          },
+          function(next) {
+            var query = {
+              _id: paymentId
+            };
+            if (action === 'preapproval') {
+              query.kind = constant.PAYMENT_TYPE.RECURRING;
+            } else if (action === 'pay') {
+              query.kind = constant.PAYMENT_TYPE.SINGLE;
+            }
+            Payment.findOne(query, next);
+          },
+          function(payment, next) {
+            payment.senderEmail = req.param('sender_email');
+            payment.status = status;
+            payment.save(next);
+          }
+        ], function(err) {
+          next(err);
+        });
+      } else {
         next();
       }
-    }
+    },
   ], function(err) {
     if (err) {
       //TODO log the error response

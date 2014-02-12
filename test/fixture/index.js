@@ -12,5 +12,15 @@ module.exports = {
     accruedAmount: 10.00,
     period: 'DAILY',
     callbackUrl: 'https://localhost/paypal?id=someRandomId28472329'
+  }, {
+    _id: '52fa10d7aa3c92020081885b',
+    amount: 0.99,
+    callbackUrl: 'http://localhost/donation/donationId',
+    key: 'AP-RandomPayKey',
+    kind: 'SINGLE',
+    receivers: [
+      'merchant@example.com'
+    ],
+    status: 'CREATED'
   }],
 };

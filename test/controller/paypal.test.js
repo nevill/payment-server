@@ -17,7 +17,6 @@ before(function(done) {
 
 describe('POST /paypal/ipn', function() {
   before(function(done) {
-    this.paymentId = '52f8c1bee6249c0000000001';
     db.loadFixtures(done);
   });
 
@@ -78,6 +77,7 @@ describe('POST /paypal/ipn', function() {
 
   describe('Verfiy preapproval', function() {
     before(function() {
+      this.paymentId = '52f8c1bee6249c0000000001';
       this.senderEmail = 'someone@example.com';
       this.requestParams = {
         'max_number_of_payments': '30',
@@ -120,6 +120,62 @@ describe('POST /paypal/ipn', function() {
           Payment.findById(self.paymentId, function(err, payment) {
             payment.senderEmail.should.eql(self.senderEmail);
             payment.status.should.eql(constant.PAYMENT_STATUS.ACTIVE);
+            done(err);
+          });
+        });
+    });
+  });
+
+  describe('Verify single pay', function() {
+    before(function() {
+      this.paymentId = '52fa10d7aa3c92020081885b';
+      this.senderEmail = 'sender@example.com';
+      //jshint camelcase: false
+      this.requestParams = {
+        payment_request_date: 'Tue Feb 11 04:00:24 PST 2014',
+        return_url: 'http://localhost/paypal/success',
+        fees_payer: 'EACHRECEIVER',
+        ipn_notification_url: 'http://localhost/paypal/ipn?id=52fa10d7',
+        sender_email: this.senderEmail,
+        verify_sign: 'An5ns1Kso7MWUdW4ErQKJJJ4qi4',
+        test_ipn: '1',
+        'transaction[0].id_for_sender_txn': '41G20083518704320',
+        'transaction[0].receiver': 'merchant@example.com',
+        cancel_url: 'http://localhost/paypal/cancel',
+        'transaction[0].is_primary_receiver': 'false',
+        pay_key: 'AP-9JW99057EE970045D',
+        action_type: 'CREATE',
+        'transaction[0].id': '5NX214736D529512R',
+        memo: 'Pay 0.99 via Paypal.com',
+        'transaction[0].status': 'Completed',
+        'transaction[0].paymentType': 'SERVICE',
+        'transaction[0].status_for_sender_txn': 'Completed',
+        'transaction[0].pending_reason': 'NONE',
+        transaction_type: 'Adaptive Payment PAY',
+        'transaction[0].amount': 'USD 0.99',
+        status: 'COMPLETED',
+        log_default_shipping_address_in_transaction: 'false',
+        charset: 'windows-1252',
+        notify_version: 'UNVERSIONED',
+        reverse_all_parallel_payments_on_error: 'false'
+      };
+    });
+    it('should update the payment model', function(done) {
+      var self = this;
+      var Payment = model.Payment;
+
+      request(app)
+        .post('/paypal/ipn?' + qs.stringify({
+          id: this.paymentId,
+          action: 'pay'
+        }))
+        .send(qs.stringify(this.requestParams))
+        .set('Content-Type', 'application/x-www-form-urlencoded')
+        .expect(200)
+        .end(function() {
+          Payment.findById(self.paymentId, function(err, payment) {
+            payment.senderEmail.should.eql(self.senderEmail);
+            payment.status.should.eql(constant.PAYMENT_STATUS.COMPLETED);
             done(err);
           });
         });
