@@ -1,7 +1,7 @@
 var async = require('async');
 
 var validateAction = function(action) {
-  var validActions = ['preapproval', 'pay', 'execute'];
+  var validActions = ['preapproval', 'pay'];
   return validActions.indexOf(action) > -1;
 };
 

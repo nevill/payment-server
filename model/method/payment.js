@@ -129,6 +129,9 @@ instanceMethods.composePayRequest = function(options) {
   }, options);
 
   if (this.kind === constant.PAYMENT_TYPE.RECURRING) {
+    // we can think of set IPN url here if needed.
+    // currently we don't need to. Because when execute a recurring
+    // payment, task/execute.js can handle it.
     _.extend(data, {
       actionType: 'PAY',
       preapprovalKey: this.key

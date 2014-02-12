@@ -12,7 +12,7 @@ var db = require('../database');
 var debug = function() {};
 if (process.env.NODE_DEBUG) {
   debug = function() {
-    console.log('[Debug] %s', util.format.apply(util, arguments));
+    console.error('[Debug] %s', util.format.apply(util, arguments));
   };
 }
 
@@ -60,11 +60,11 @@ function execute(payment, next) {
     }
   ], function(err) {
     if (err) {
-      console.error(err.message);
+      console.error('Error when executing a payment:', err.message);
     }
     // don't pass the err to `next`
     // we want other payments get executed
-    process.nextTick(next);
+    setImmediate(next);
   });
 }
 
@@ -72,11 +72,12 @@ db.init(function() {
   async.waterfall([
     Payment.findDues.bind(Payment),
     function(payments, cb) {
+      debug('found %d payments', payments.length);
       async.each(payments, execute, cb);
     }
   ], function(err) {
     if (err) {
-      console.error(err.message);
+      console.error('Error:', err.message);
     }
     db.disconnect();
   });
