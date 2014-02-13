@@ -19,6 +19,36 @@ exports.ipn = function(req, res) {
   var status = req.param('status');
   var action = req.param('action');
 
+  var updatePaymentInfo = function(next) {
+    async.waterfall([
+      function(next) {
+        var err;
+        if (!validateIPNStatus(action, status)) {
+          err = new Error('Invalid IPN status');
+        }
+        next(err);
+      },
+      function(next) {
+        var query = {
+          _id: paymentId
+        };
+        if (action === 'preapproval') {
+          query.kind = constant.PAYMENT_TYPE.RECURRING;
+        } else if (action === 'pay') {
+          query.kind = constant.PAYMENT_TYPE.SINGLE;
+        }
+        Payment.findOne(query, next);
+      },
+      function(payment, next) {
+        payment.senderEmail = req.param('sender_email');
+        payment.status = status;
+        payment.save(next);
+      }
+    ], function(err) {
+      next(err);
+    });
+  };
+
   async.waterfall([
     function(next) {
       paypalClient.verify(req.body, next);
@@ -32,33 +62,7 @@ exports.ipn = function(req, res) {
     },
     function(next) {
       if (validateAction(action)) {
-        async.waterfall([
-          function(next) {
-            var err;
-            if (!validateIPNStatus(action, status)) {
-              err = new Error('Invalid IPN status');
-            }
-            next(err);
-          },
-          function(next) {
-            var query = {
-              _id: paymentId
-            };
-            if (action === 'preapproval') {
-              query.kind = constant.PAYMENT_TYPE.RECURRING;
-            } else if (action === 'pay') {
-              query.kind = constant.PAYMENT_TYPE.SINGLE;
-            }
-            Payment.findOne(query, next);
-          },
-          function(payment, next) {
-            payment.senderEmail = req.param('sender_email');
-            payment.status = status;
-            payment.save(next);
-          }
-        ], function(err) {
-          next(err);
-        });
+        updatePaymentInfo(next);
       } else {
         next();
       }
