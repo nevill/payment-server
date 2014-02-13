@@ -19,8 +19,17 @@
     "moment": "~2.5.1",
     "async": "~0.2.10"
   },
+  "devDependencies": {
+    "mocha": "~1.17.0",
+    "supertest": "~0.9.0",
+    "should": "~3.0.1",
+    "qs": "~0.6.6",
+    "sinon": "~1.7.3",
+    "nock": "~0.27.2"
+  },
   "scripts": {
     "start": "node server.js",
+    "console": "node task/console.js",
     "test": "NODE_ENV=test mocha test/**/*.test.js"
   },
   "repository": {
@@ -36,13 +45,5 @@
     "payment"
   ],
   "author": "Nevill <nevill.dutt@gmail.com>",
-  "license": "MIT",
-  "devDependencies": {
-    "mocha": "~1.17.0",
-    "supertest": "~0.9.0",
-    "should": "~3.0.1",
-    "qs": "~0.6.6",
-    "sinon": "~1.7.3",
-    "nock": "~0.27.2"
-  }
+  "license": "MIT"
 }
