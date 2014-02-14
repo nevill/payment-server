@@ -91,16 +91,24 @@ var request = function(params, next) {
 
 // send a POST request to options.url with options.body
 var remoteCall = function(options, next) {
-  var retryCount = 3; // retry 3 times
-  var retryInterval = 10000; // retry every 10 seconds
+  // retry 3 times
+  var retryCount = 3;
 
-  var retry = function(err) {
-    if (err && retryCount > 0) {
-      console.log('retry count:', retryCount, '\nerror occurred:', err);
+  var retry = function(err, resp) {
+    if ((err || String(resp.statusCode) !== '200') && retryCount > 0) {
+      console.error('retry count:', retryCount);
+      if (err) {
+        console.error('error occurred:', err);
+      } else {
+        console.error('response status:', resp.statusCode);
+        console.error('body:', resp.body);
+      }
+      // retry in 100 to 960 seconds
+      var retryInterval = Math.round(Math.random() * 960 + 100);
       retryCount--;
       setTimeout(function() {
         request(options, retry);
-      }, retryInterval);
+      }, retryInterval * 1000);
     } else {
       next.apply(null, arguments);
     }
