@@ -1,0 +1,4 @@
+runtime "node"
+exec "notification.js"
+
+name 'NotificationWorker'
