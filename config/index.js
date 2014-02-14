@@ -17,6 +17,11 @@ var defaults = {
     applicationId: '' || process.env.PP_APP_ID,
     // message used in API call /Pay, will replace %d with the amount
     memoTemplate: 'Pay %d via Example.com',
+  },
+  iron: { // settings for iron workerh, see http://dev.iron.io/worker/
+    projectId: '' || process.env.IRON_WORKER_PROJECT_ID,
+    token: '' || process.env.IRON_WORKER_TOKEN,
+    endpoint: 'worker-aws-us-east-1.iron.io'
   }
 };
 
@@ -27,6 +32,10 @@ var config = {
     },
     paypal: {
       applicationId: 'APP-80W284485P519543T',
+    },
+    iron: {
+      projectId: '',
+      token: '',
     }
   },
   test: {
@@ -35,7 +44,7 @@ var config = {
     },
   },
   production: {
-    // should always using https in production
+    // always using https in production
     protocol: 'https',
     paypal: {
       host: 'www.paypal.com',
