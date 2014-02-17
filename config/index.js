@@ -21,7 +21,10 @@ var defaults = {
   iron: { // settings for iron workerh, see http://dev.iron.io/worker/
     projectId: '' || process.env.IRON_WORKER_PROJECT_ID,
     token: '' || process.env.IRON_WORKER_TOKEN,
-    endpoint: 'worker-aws-us-east-1.iron.io'
+    endpoint: 'worker-aws-us-east-1.iron.io',
+    workers: {
+      webhook: 'NotificationWorker'
+    }
   }
 };
 
