@@ -242,13 +242,13 @@ describe('Paypal#createCommandLink', function() {
 
 describe('Paypal#verify', function() {
   before(function() {
-    nock('https://www.sandbox.paypal.com')
+    this.scope = nock('https://www.sandbox.paypal.com')
       .post('/cgi-bin/webscr?cmd=_notify-validate')
       .reply(200, 'VERIFIED');
   });
 
   after(function() {
-    nock.restore();
+    this.scope.done();
   });
 
   it('should be called with a callback', function(done) {
