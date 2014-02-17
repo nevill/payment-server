@@ -1,4 +1,5 @@
 var async = require('async');
+var util = require('util');
 
 var validateAction = function(action) {
   var validActions = ['preapproval', 'pay'];
@@ -12,12 +13,34 @@ var validateIPNStatus = function(action, status) {
 
 exports.ipn = function(req, res) {
   var paypalClient = this.app.get('paypalClient');
+  var ironWorker = this.app.get('ironWorker');
   var Payment = this.model.Payment;
   var constant = this.model.constants;
 
   var paymentId = req.param('id');
   var status = req.param('status');
   var action = req.param('action');
+
+  var sendWebhook = function(payment, next) {
+    var request = {
+      url: payment.callbackUrl,
+      body: {
+        id: payment.id,
+        amount: payment.amount,
+      }
+    };
+    ironWorker.enqueue(request, function(err, result) {
+      if (err) {
+        next(err);
+      } else {
+        var e = null;
+        if (!result) {
+          e = new Error('Cannot send webhook back to: ' + request.url);
+        }
+        next(e);
+      }
+    });
+  };
 
   var updatePaymentInfo = function(next) {
     async.waterfall([
@@ -43,6 +66,9 @@ exports.ipn = function(req, res) {
         payment.senderEmail = req.param('sender_email');
         payment.status = status;
         payment.save(next);
+      },
+      function(payment, numberAffected, next) {
+        sendWebhook(payment, next);
       }
     ], function(err) {
       next(err);
@@ -70,8 +96,12 @@ exports.ipn = function(req, res) {
   ], function(err) {
     if (err) {
       //TODO log the error response
-      console.log('Error occurred in POST /paypal/ipn:', err);
-      console.log('Query: %s, body: %s', req.query, req.body);
+      console.log('Error occurred in POST /paypal/ipn:', err.message);
+      console.log('Query: %s, body: %s', util.inspect(req.query, {
+        depth: null
+      }), util.inspect(req.body, {
+        depth: null
+      }));
     }
     res.send(200);
   });

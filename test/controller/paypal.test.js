@@ -10,6 +10,7 @@ var model = db.models;
 var constant = model.constants;
 
 var paypalClient = app.get('paypalClient');
+var ironWorker = app.get('ironWorker');
 
 before(function(done) {
   db.init(done);
@@ -105,6 +106,16 @@ describe('POST /paypal/ipn', function() {
       };
     });
 
+    before(function() {
+      this.mock = sinon.mock(ironWorker);
+      this.expect = this.mock.expects('enqueue');
+      this.expect.callsArgWith(1, null, true, {});
+    });
+
+    after(function() {
+      this.mock.restore();
+    });
+
     it('should update the payment model', function(done) {
       var self = this;
       var Payment = model.Payment;
@@ -118,9 +129,20 @@ describe('POST /paypal/ipn', function() {
         .expect(200)
         .end(function() {
           Payment.findById(self.paymentId, function(err, payment) {
+            should.not.exist(err);
             payment.senderEmail.should.eql(self.senderEmail);
             payment.status.should.eql(constant.PAYMENT_STATUS.ACTIVE);
-            done(err);
+
+            self.expect.calledWithMatch({
+                url: payment.callbackUrl,
+                body: {
+                  id: payment.id,
+                  amount: payment.amount,
+                }
+              },
+              sinon.match.func)
+              .should.eql(true);
+            done();
           });
         });
     });
@@ -160,6 +182,17 @@ describe('POST /paypal/ipn', function() {
         reverse_all_parallel_payments_on_error: 'false'
       };
     });
+
+    before(function() {
+      this.mock = sinon.mock(ironWorker);
+      this.expect = this.mock.expects('enqueue');
+      this.expect.callsArgWith(1, null, true, {});
+    });
+
+    after(function() {
+      this.mock.restore();
+    });
+
     it('should update the payment model', function(done) {
       var self = this;
       var Payment = model.Payment;
@@ -174,9 +207,22 @@ describe('POST /paypal/ipn', function() {
         .expect(200)
         .end(function() {
           Payment.findById(self.paymentId, function(err, payment) {
+            should.not.exist(err);
             payment.senderEmail.should.eql(self.senderEmail);
-            payment.status.should.eql(constant.PAYMENT_STATUS.COMPLETED);
-            done(err);
+            payment.status
+              .should.eql(constant.PAYMENT_STATUS.COMPLETED);
+
+            self.expect.calledWithMatch({
+                url: payment.callbackUrl,
+                body: {
+                  id: payment.id,
+                  amount: payment.amount,
+                }
+              },
+              sinon.match.func)
+              .should.eql(true);
+
+            done();
           });
         });
     });
