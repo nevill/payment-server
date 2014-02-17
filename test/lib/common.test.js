@@ -4,17 +4,19 @@ var should = require('should');
 var Common = require('../../lib/common');
 
 describe('Common.hasRequiredKeys', function() {
-
   before(function() {
     this.RequiredKeys = ['applicationId', 'name', 'email'];
-  });
-
-  it('should throw an error when a required key missed', function() {
-    Common.hasRequiredKeys.bind(null, {
+    this.objToCheck = {
       name: 'ZhangSan',
       age: '16',
       email: 'ZhangSan@example.com'
-    }, this.RequiredKeys).should.throw(/applicationId/);
+    };
+  });
+
+  it('should throw an error when a required key missed', function() {
+    Common.hasRequiredKeys
+      .bind(null, this.objToCheck, this.RequiredKeys)
+      .should.throw(/applicationId/);
   });
 });
 
