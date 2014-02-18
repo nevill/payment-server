@@ -20,9 +20,10 @@ module.exports = {
     key: 'PA-RandomPreapprovalKey',
     startingAt: today.valueOf() - 86400 * 1000, // 1 day before
     endingAt: today.valueOf() + 86400 * 1000 * 180, // 180 days
+    nextBilling: today.valueOf(),
     amount: 3.59,
     accruedAmount: 20.41,
-    period: 'DAILY',
+    period: 'MONTHLY',
     status: 'ACTIVE',
     callbackUrl: 'https://localhost/donation?id=someRandomId28472329'
   }, {

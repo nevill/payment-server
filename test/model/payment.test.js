@@ -7,6 +7,18 @@ before(function(done) {
   db.init(done);
 });
 
+var checkBilling = function() {
+  it('should have `nextBilling` if status is `ACTIVE`', function() {
+    var payment = this.payment;
+    if (payment.status === 'ACTIVE') {
+      should.exist(payment.nextBilling);
+    } else {
+      should.not.exist(payment.nextBilling);
+      should.not.exist(payment.lastBilling);
+    }
+  });
+};
+
 describe('Payment Class', function() {
   before(function(done) {
     db.loadFixtures(done);
@@ -100,7 +112,13 @@ describe('Payment Class', function() {
           numberAffercted.should.above(0);
           payment.kind.should.eql('RECURRING');
           payment.senderEmail.should.eql(self.data.senderEmail);
-          payment.status.should.eql(self.data.status);
+
+          payment.status.should.eql('ACTIVE');
+          should.exist(payment.nextBilling);
+          payment.nextBilling.should.within(
+            payment.startingAt.valueOf(),
+            payment.startingAt.valueOf() + 1000 * 86400);
+
           done();
         });
     });
@@ -169,8 +187,10 @@ describe('Payment Instance', function() {
   });
 
   describe('type - Recurring', function() {
-    before(function() {
-      this.payment = new Payment({
+    before(function(done) {
+      var self = this;
+
+      Payment.create({
         kind: 'RECURRING',
         key: 'A Random Preapproval Key',
         startingAt: new Date(2013, 11, 31),
@@ -180,14 +200,9 @@ describe('Payment Instance', function() {
         period: 'MONTHLY',
         receivers: ['someone@example.com'],
         callbackUrl: 'https://localhost/paypal?id=someRandomId28472329'
-      });
-    });
-
-    it('should have attribute `nextBilling`', function(done) {
-      this.payment.save(function(err, payment) {
-        should.exist(payment.nextBilling);
-        payment.nextBilling.should.eql(new Date(2013, 12, 31));
-        done();
+      }, function(err, payment) {
+        self.payment = payment;
+        done(err);
       });
     });
 
@@ -231,7 +246,20 @@ describe('Payment Instance', function() {
       this.payment._calculateTotalAmount().should.eql(23.88);
     });
 
+    checkBilling();
+
     describe('When execute a payment', function() {
+      before(function(done) {
+        var self = this;
+        Payment.authorize(this.payment.id, {
+          senderEmail: 'someone@example.com',
+          status: 'ACTIVE'
+        }, function(err, payment) {
+          self.payment = payment;
+          done(err);
+        });
+      });
+
       var amount = 2.93;
       before(function(done) {
         this.invoice = {
@@ -243,12 +271,16 @@ describe('Payment Instance', function() {
         this.payment.execute(this.invoice, done);
       });
 
+      checkBilling();
+
       it('should set attribute `lastBilling`', function() {
         var lastBilling = this.payment.lastBilling;
         should.exist(lastBilling);
+
         lastBilling.should.within(this.billingDay, new Date());
         this.payment.nextBilling.should.within(
           lastBilling.valueOf(), lastBilling.valueOf() + 31000 * 86400);
+
         this.payment.accruedAmount.should.eql(amount);
         this.payment.history.should.have.length(1);
       });

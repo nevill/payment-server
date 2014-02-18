@@ -115,6 +115,7 @@ classMethods.authorize = function(id, data, done) {
       done(err);
     } else {
       payment.set(data);
+      payment._updateBilling();
       payment.save(done);
     }
   });
@@ -124,15 +125,17 @@ var instanceMethods = {};
 // Execute a recurring payment
 instanceMethods.execute = function(data, done) {
   this.accruedAmount = plus(this.accruedAmount || 0, data.amount);
+
   var now = new Date();
-  this.lastBilling = now;
+
   this.history.push({
     payKey: data.payKey,
     amount: data.amount,
     receivers: data.receivers,
     createdAt: now,
   });
-
+  this.lastBilling = now;
+  this._updateBilling();
   this.save(done);
 };
 
@@ -223,21 +226,13 @@ instanceMethods.composeWebhook = function() {
   };
 };
 
+instanceMethods._updateBilling = function() {
+  var period = periodMap[this.period];
+  var lastBilling = this.lastBilling || this.startingAt;
+  this.nextBilling = moment(lastBilling).add(period, 1);
+};
+
 module.exports = function(schema) {
   schema.static(classMethods);
   schema.method(instanceMethods);
-
-  // set attribute nextBilling
-  schema.pre('save', true, function(next, done) {
-    next();
-    if (this.kind === constant.PAYMENT_TYPE.RECURRING) {
-      var period = periodMap[this.period];
-      if (this.isNew) {
-        this.nextBilling = moment(this.startingAt).add(period, 1);
-      } else {
-        this.nextBilling = moment(this.lastBilling).add(period, 1);
-      }
-    }
-    done();
-  });
 };
