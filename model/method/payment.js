@@ -212,6 +212,16 @@ instanceMethods.composePreapprovalRequest = function(options) {
   }, options);
 };
 
+instanceMethods.composeWebhook = function() {
+  return {
+    url: this.callbackUrl,
+    body: {
+      id: this.id,
+      amount: this.amount,
+    }
+  };
+};
+
 module.exports = function(schema) {
   schema.static(classMethods);
   schema.method(instanceMethods);

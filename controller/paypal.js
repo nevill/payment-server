@@ -16,14 +16,7 @@ var sendWebhook = function(ironWorker, next) {
     if (err) {
       next(err);
     } else {
-      var request = {
-        url: payment.callbackUrl,
-        body: {
-          id: payment.id,
-          amount: payment.amount,
-        }
-      };
-      ironWorker.enqueue(request, next);
+      ironWorker.enqueue(payment.composeWebhook(), next);
     }
   };
 };
