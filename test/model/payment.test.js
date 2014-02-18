@@ -57,6 +57,54 @@ describe('Payment Class', function() {
       });
     });
   });
+
+  describe('Method - executeSingle', function() {
+    before(function() {
+      // from test/fixture/index.js
+      this.paymentId = '52fa10d7aa3c92020081885b';
+      this.data = {
+        senderEmail: 'someone@example.com',
+        status: 'COMPLETED'
+      };
+    });
+
+    it('should update payment', function(done) {
+      var self = this;
+      Payment.executeSingle(this.paymentId, this.data,
+        function(err, payment, numberAffercted) {
+          should.not.exist(err);
+          numberAffercted.should.above(0);
+          payment.kind.should.eql('SINGLE');
+          payment.senderEmail.should.eql(self.data.senderEmail);
+          payment.status.should.eql(self.data.status);
+          done();
+        });
+    });
+  });
+
+  describe('Method - authorize', function() {
+    before(function() {
+      // from test/fixture/index.js
+      this.paymentId = '52f8c1bee6249c0000000001';
+      this.data = {
+        senderEmail: 'someone@example.com',
+        status: 'ACTIVE'
+      };
+    });
+
+    it('should update payment', function(done) {
+      var self = this;
+      Payment.authorize(this.paymentId, this.data,
+        function(err, payment, numberAffercted) {
+          should.not.exist(err);
+          numberAffercted.should.above(0);
+          payment.kind.should.eql('RECURRING');
+          payment.senderEmail.should.eql(self.data.senderEmail);
+          payment.status.should.eql(self.data.status);
+          done();
+        });
+    });
+  });
 });
 
 describe('Payment Instance', function() {
