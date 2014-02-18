@@ -11,6 +11,10 @@ before(function(done) {
 });
 
 describe('Payment creation', function() {
+  after(function(done) {
+    db.dropModels('Payment', done);
+  });
+
   it('should create a new payment entry', function(done) {
     var paymentAttrs = {
       kind: 'SINGLE',
