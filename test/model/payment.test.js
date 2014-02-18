@@ -227,10 +227,13 @@ describe('Model Payment', function() {
         data.startingDate.should.eql(this.payment.startingAt);
         data.endingDate.should.eql(this.payment.endingAt);
         data.period.should.eql(this.payment.period);
+
         data.maxAmountPerPayment.should.eql(this.payment.amount);
         data.maxTotalAmountOfAllPayments
           .should.eql(this.payment._calculateTotalAmount());
-        data.ipnNotificationUrl.indexOf(this.payment.id).should.above(-1);
+
+        data.ipnNotificationUrl.indexOf(this.payment.id)
+          .should.above(-1);
         should.exist(data.returnUrl);
         should.exist(data.cancelUrl);
       });
@@ -264,18 +267,51 @@ describe('Model Payment', function() {
           this.payment.execute(this.invoice, done);
         });
 
+        it('should update nextBilling', function() {
+          var lastBilling = this.payment.lastBilling;
+          this.payment.nextBilling.should.within(
+            lastBilling.valueOf(),
+            lastBilling.valueOf() + 31000 * 86400);
+        });
+
+        var checkAfterExecute = function() {
+          it('should set attribute `lastBilling`', function() {
+            this.payment.lastBilling
+              .should.within(this.billingDay, new Date());
+          });
+
+          it('should have a new record in history', function() {
+            this.payment.history.should.have.length(1);
+          });
+
+          it('should have accruedAmount increased', function() {
+            this.payment.accruedAmount.should.eql(amount);
+          });
+        };
+
         checkBilling();
 
-        it('should set attribute `lastBilling`', function() {
-          var lastBilling = this.payment.lastBilling;
-          should.exist(lastBilling);
+        checkAfterExecute();
 
-          lastBilling.should.within(this.billingDay, new Date());
-          this.payment.nextBilling.should.within(
-            lastBilling.valueOf(), lastBilling.valueOf() + 31000 * 86400);
+        describe('When execute a soon to end payment', function() {
+          before(function(done) {
+            var self = this;
+            var paymentId = '53034ad856670b9198b1de9f';
+            Payment.findById(paymentId, function(err, payment) {
+              should.not.exist(err);
+              self.payment = payment;
+              self.billingDay = payment.nextBilling;
+              payment.execute(self.invoice, done);
+            });
+          });
 
-          this.payment.accruedAmount.should.eql(amount);
-          this.payment.history.should.have.length(1);
+          checkBilling();
+
+          checkAfterExecute();
+
+          it('should set status to `COMPLETED`', function() {
+            this.payment.status.should.eql('COMPLETED');
+          });
         });
       });
     });

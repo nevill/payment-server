@@ -136,6 +136,12 @@ instanceMethods.execute = function(data, done) {
   });
   this.lastBilling = now;
   this._updateBilling();
+
+  if (this.nextBilling > this.endingAt) {
+    this.status = constant.PAYMENT_STATUS.COMPLETED;
+    this.nextBilling = '';
+  }
+
   this.save(done);
 };
 

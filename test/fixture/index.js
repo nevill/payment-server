@@ -39,6 +39,21 @@ module.exports = {
     receivers: ['someone@example.com'],
     callbackUrl: 'https://localhost/paypal?id=someRandomId28472329'
   }, {
+    // used in test/model/payment
+    _id: '53034ad856670b9198b1de9f',
+    kind: 'RECURRING',
+    key: 'A Random Preapproval Key',
+    startingAt: new Date(2014, 0, 1),
+    endingAt: new Date(),
+    nextBilling: new Date(2014, 1, 2),
+    lastBilling: new Date(2014, 0, 2),
+    senderEmail: 'buyer@example.com',
+    amount: 5.99,
+    period: 'MONTHLY',
+    status: 'ACTIVE',
+    receivers: ['someone@example.com'],
+    callbackUrl: 'https://localhost/paypal?id=someRandomId28472329'
+  }, {
     _id: '52fa10d7aa3c92020081885b',
     amount: 0.99,
     callbackUrl: 'http://localhost/donation/donationId',
