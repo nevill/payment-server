@@ -23,13 +23,7 @@ var sendWebhook = function(ironWorker, next) {
           amount: payment.amount,
         }
       };
-      ironWorker.enqueue(request, function(err, success) {
-        if (!err && !success) {
-          err = new Error('Something went wrong ' +
-            'when request back to: ' + request.url);
-        }
-        next(err);
-      });
+      ironWorker.enqueue(request, next);
     }
   };
 };
