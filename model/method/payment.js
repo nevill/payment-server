@@ -25,9 +25,10 @@ classMethods.findDues = function(done) {
   var now = new Date();
   this.find({
     kind: constant.PAYMENT_TYPE.RECURRING,
+    status: constant.PAYMENT_STATUS.ACTIVE,
     nextBilling: {
       $lte: now,
-    }
+    },
   }, done);
 };
 

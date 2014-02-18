@@ -2,7 +2,8 @@ var today = new Date();
 
 module.exports = {
   // Payemnt - the model class name, case sensitive
-  Payment: [{ // for test/model/payment
+  Payment: [{
+    // used in test/model/payment
     _id: '52f8c1bee6249c0000000001',
     kind: 'RECURRING',
     key: 'PA-RandomPreapprovalKey',
@@ -12,6 +13,18 @@ module.exports = {
     accruedAmount: 10.00,
     period: 'DAILY',
     callbackUrl: 'https://localhost/paypal?id=someRandomId28472329'
+  }, {
+    // for Payment.findDues
+    _id: '530318bed1cfcc02003392e4',
+    kind: 'RECURRING',
+    key: 'PA-RandomPreapprovalKey',
+    startingAt: today.valueOf() - 86400 * 1000, // 1 day before
+    endingAt: today.valueOf() + 86400 * 1000 * 180, // 180 days
+    amount: 3.59,
+    accruedAmount: 20.41,
+    period: 'DAILY',
+    status: 'ACTIVE',
+    callbackUrl: 'https://localhost/donation?id=someRandomId28472329'
   }, {
     _id: '52fa10d7aa3c92020081885b',
     amount: 0.99,
