@@ -11,69 +11,33 @@ var validateIPNStatus = function(action, status) {
     (action === 'preapproval' && status === 'ACTIVE');
 };
 
+var sendWebhook = function(ironWorker, next) {
+  return function(err, payment) {
+    if (err) {
+      next(err);
+    } else {
+      var request = {
+        url: payment.callbackUrl,
+        body: {
+          id: payment.id,
+          amount: payment.amount,
+        }
+      };
+      ironWorker.enqueue(request, function(err, success) {
+        if (!err && !success) {
+          err = new Error('Something went wrong ' +
+            'when request back to: ' + request.url);
+        }
+        next(err);
+      });
+    }
+  };
+};
+
 exports.ipn = function(req, res) {
   var paypalClient = this.app.get('paypalClient');
   var ironWorker = this.app.get('ironWorker');
   var Payment = this.model.Payment;
-  var constant = this.model.constants;
-
-  var paymentId = req.param('id');
-  var status = req.param('status');
-  var action = req.param('action');
-
-  var sendWebhook = function(payment, next) {
-    var request = {
-      url: payment.callbackUrl,
-      body: {
-        id: payment.id,
-        amount: payment.amount,
-      }
-    };
-    ironWorker.enqueue(request, function(err, result) {
-      if (err) {
-        next(err);
-      } else {
-        var e = null;
-        if (!result) {
-          e = new Error('Cannot send webhook back to: ' + request.url);
-        }
-        next(e);
-      }
-    });
-  };
-
-  var updatePaymentInfo = function(next) {
-    async.waterfall([
-      function(next) {
-        var err;
-        if (!validateIPNStatus(action, status)) {
-          err = new Error('Invalid IPN status');
-        }
-        next(err);
-      },
-      function(next) {
-        var query = {
-          _id: paymentId
-        };
-        if (action === 'preapproval') {
-          query.kind = constant.PAYMENT_TYPE.RECURRING;
-        } else if (action === 'pay') {
-          query.kind = constant.PAYMENT_TYPE.SINGLE;
-        }
-        Payment.findOne(query, next);
-      },
-      function(payment, next) {
-        payment.senderEmail = req.param('sender_email');
-        payment.status = status;
-        payment.save(next);
-      },
-      function(payment, numberAffected, next) {
-        sendWebhook(payment, next);
-      }
-    ], function(err) {
-      next(err);
-    });
-  };
 
   async.waterfall([
     function(next) {
@@ -87,11 +51,39 @@ exports.ipn = function(req, res) {
       next(err);
     },
     function(next) {
+      var action = req.param('action');
+      var status = req.param('status');
+
+      var err;
+      // paypal can send several IPN messages on responsing one event
       if (validateAction(action)) {
-        updatePaymentInfo(next);
-      } else {
-        next();
+        if (validateIPNStatus(action, status)) {
+          var method;
+
+          if (action === 'preapproval') {
+            method = Payment.authorize;
+          } else if (action === 'pay') {
+            next = sendWebhook(ironWorker, next);
+            method = Payment.executeSingle;
+          }
+
+          if (method) {
+            var paymentId = req.param('id');
+            var senderEmail = req.param('sender_email');
+
+            next = method.bind(Payment, paymentId, {
+              senderEmail: senderEmail,
+              status: status,
+            }, next);
+          } else {
+            err = new Error('Unknown action');
+          }
+        } else {
+          err = new Error('Invalid IPN status');
+        }
       }
+
+      next(err);
     },
   ], function(err) {
     if (err) {

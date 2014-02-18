@@ -89,6 +89,36 @@ classMethods.createRecurring = function(attrs, done) {
   }
 };
 
+// Update payment info when answering a single payment IPN message
+classMethods.executeSingle = function(id, data, done) {
+  this.findOne({
+    _id: id,
+    kind: constant.PAYMENT_TYPE.SINGLE
+  }, function(err, payment) {
+    if (err) {
+      done(err);
+    } else {
+      payment.set(data);
+      payment.save(done);
+    }
+  });
+};
+
+// Update payment info when answering a preapproval authorized IPN message
+classMethods.authorize = function(id, data, done) {
+  this.findOne({
+    _id: id,
+    kind: constant.PAYMENT_TYPE.RECURRING
+  }, function(err, payment) {
+    if (err) {
+      done(err);
+    } else {
+      payment.set(data);
+      payment.save(done);
+    }
+  });
+};
+
 var instanceMethods = {};
 // Execute a recurring payment
 instanceMethods.execute = function(data, done) {

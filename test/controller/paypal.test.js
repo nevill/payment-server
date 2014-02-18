@@ -106,16 +106,6 @@ describe('POST /paypal/ipn', function() {
       };
     });
 
-    before(function() {
-      this.mock = sinon.mock(ironWorker);
-      this.expect = this.mock.expects('enqueue');
-      this.expect.callsArgWith(1, null, true, {});
-    });
-
-    after(function() {
-      this.mock.restore();
-    });
-
     it('should update the payment model', function(done) {
       var self = this;
       var Payment = model.Payment;
@@ -132,16 +122,6 @@ describe('POST /paypal/ipn', function() {
             should.not.exist(err);
             payment.senderEmail.should.eql(self.senderEmail);
             payment.status.should.eql(constant.PAYMENT_STATUS.ACTIVE);
-
-            self.expect.calledWithMatch({
-                url: payment.callbackUrl,
-                body: {
-                  id: payment.id,
-                  amount: payment.amount,
-                }
-              },
-              sinon.match.func)
-              .should.eql(true);
             done();
           });
         });
