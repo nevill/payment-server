@@ -138,6 +138,7 @@ describe('Payment Instance', function() {
 
       should.exist(data.ipnNotificationUrl);
       data.ipnNotificationUrl.should.include(this.payment.id);
+      data.ipnNotificationUrl.should.include('action=pay');
 
       data.receiverList.receiver.should.have.length(1);
       var receiver = data.receiverList.receiver[0];
@@ -193,12 +194,19 @@ describe('Payment Instance', function() {
     it('should compose a pay request package', function() {
       var data = this.payment.composePayRequest();
       data.receiverList.receiver.should.have.length(1);
+
+      should.exist(data.ipnNotificationUrl);
+      data.ipnNotificationUrl.should.include(this.payment.id);
+      data.ipnNotificationUrl.should.include('action=execute');
+
       var receiver = data.receiverList.receiver[0];
       receiver.email.should.eql('someone@example.com');
       receiver.amount.should.eql(1.99);
+
       data.senderEmail.should.eql('guest@example.com');
       data.actionType.should.eql('PAY');
       data.memo.should.be.type('string');
+
       should(data.memo.indexOf(1.99)).not.eql(-1);
     });
 

@@ -2,7 +2,7 @@ var async = require('async');
 var util = require('util');
 
 var validateAction = function(action) {
-  var validActions = ['preapproval', 'pay'];
+  var validActions = ['preapproval', 'pay', 'execute'];
   return validActions.indexOf(action) > -1;
 };
 
@@ -44,29 +44,40 @@ exports.ipn = function(req, res) {
       var err;
       // paypal can send several IPN messages on responsing one event
       if (validateAction(action)) {
-        if (validateIPNStatus(action, status)) {
-          var method;
+        var method;
+        var hasWebhook = false;
 
+        if (action === 'execute') {
+          // send webhook when executing a recurring payment
+          hasWebhook = true;
+          // A simple wrapper method
+          method = function(paymentId, data, next) {
+            return this.findById(paymentId, next);
+          };
+        } else if (validateIPNStatus(action, status)) {
           if (action === 'preapproval') {
             method = Payment.authorize;
           } else if (action === 'pay') {
-            next = sendWebhook(ironWorker, next);
+            // send webhook when receiving a single payment
+            hasWebhook = true;
             method = Payment.executeSingle;
-          }
-
-          if (method) {
-            var paymentId = req.param('id');
-            var senderEmail = req.param('sender_email');
-
-            next = method.bind(Payment, paymentId, {
-              senderEmail: senderEmail,
-              status: status,
-            }, next);
-          } else {
-            err = new Error('Unknown action');
           }
         } else {
           err = new Error('Invalid IPN status');
+        }
+
+        if (method) {
+          var paymentId = req.param('id');
+          var senderEmail = req.param('sender_email');
+
+          if (hasWebhook) {
+            next = sendWebhook(ironWorker, next);
+          }
+
+          next = method.bind(Payment, paymentId, {
+            senderEmail: senderEmail,
+            status: status,
+          }, next);
         }
       }
 

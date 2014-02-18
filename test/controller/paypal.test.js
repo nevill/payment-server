@@ -207,6 +207,66 @@ describe('POST /paypal/ipn', function() {
         });
     });
   });
+
+  describe('Execute a recurring payment', function() {
+    before(function() {
+      this.mock = sinon.mock(ironWorker);
+      this.expect = this.mock.expects('enqueue');
+      this.expect.callsArgWith(1, null);
+    });
+
+    after(function() {
+      this.mock.restore();
+    });
+
+    before(function() {
+      this.paymentId = '52f8c1bee6249c0000000001';
+      this.requestParams = {
+        'mc_gross': '1.01',
+        'protection_eligibility': 'Ineligible',
+        'payer_id': 'XBHFDX9F2F4HU',
+        tax: '0.00',
+        'payment_date': '05:06:29 Jan 23, 2014 PST',
+        'payment_status': 'Completed',
+        charset: 'windows-1252',
+        'first_name': '\u001a',
+        'mc_fee': '0.33',
+        'notify_version': '3.7',
+        'payer_status': 'verified',
+      };
+    });
+
+    it('should send a webhook', function(done) {
+      var self = this;
+      var Payment = model.Payment;
+
+      request(app)
+        .post('/paypal/ipn?' + qs.stringify({
+          id: this.paymentId,
+          action: 'execute'
+        }))
+        .send(qs.stringify())
+        .set('Content-Type', 'application/x-www-form-urlencoded')
+        .expect(200)
+        .end(function() {
+          Payment.findById(self.paymentId, function(err, payment) {
+            should.not.exist(err);
+
+            self.expect.calledWithMatch({
+                url: payment.callbackUrl,
+                body: {
+                  id: payment.id,
+                  amount: payment.amount,
+                }
+              },
+              sinon.match.func)
+              .should.eql(true);
+
+            done();
+          });
+        });
+    });
+  });
 });
 
 describe('POST /paypal/pay', function() {

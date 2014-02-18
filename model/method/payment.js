@@ -154,23 +154,27 @@ instanceMethods.composePayRequest = function(options) {
     memo: util.format(nconf.get('paypal:memoTemplate'), this.amount),
   }, options);
 
+  var urlObj = {
+    host: nconf.get('host'),
+    protocol: nconf.get('protocol'),
+    pathname: '/paypal/ipn',
+  };
+
   if (this.kind === constant.PAYMENT_TYPE.RECURRING) {
-    // we can think of set IPN url here if needed.
-    // currently we don't need to. Because when execute a recurring
-    // payment, task/execute.js can handle it.
+    urlObj.query = {
+      id: this.id,
+      action: 'execute'
+    };
+
     _.extend(data, {
       actionType: 'PAY',
-      preapprovalKey: this.key
+      preapprovalKey: this.key,
+      ipnNotificationUrl: url.format(urlObj),
     });
   } else if (this.kind === constant.PAYMENT_TYPE.SINGLE) {
-    var urlObj = {
-      host: nconf.get('host'),
-      protocol: nconf.get('protocol'),
-      pathname: '/paypal/ipn',
-      query: {
-        id: this.id,
-        action: 'pay'
-      },
+    urlObj.query = {
+      id: this.id,
+      action: 'pay'
     };
 
     _.extend(data, {
