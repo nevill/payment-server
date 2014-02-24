@@ -20,7 +20,7 @@ module.exports = function(options) {
               req.body[key] = val;
             });
 
-            req.busboy.on('end', function() {
+            req.busboy.on('finish', function() {
               next();
             });
           } else {
