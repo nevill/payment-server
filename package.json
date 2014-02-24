@@ -10,22 +10,22 @@
     "test": "test"
   },
   "dependencies": {
-    "express": "3.x",
+    "express": "3.4.8",
     "connect-busboy": "0.0.1",
-    "nconf": "~0.6.9",
-    "underscore": "~1.5.2",
-    "nopt": "~2.1.2",
-    "mongoose": "~3.8.4",
-    "moment": "~2.5.1",
-    "async": "~0.2.10"
+    "nconf": "0.6.9",
+    "underscore": "1.5.2",
+    "nopt": "2.1.2",
+    "mongoose": "3.8.4",
+    "moment": "2.5.1",
+    "async": "0.2.10"
   },
   "devDependencies": {
-    "mocha": "~1.17.0",
-    "supertest": "~0.9.0",
-    "should": "~3.0.1",
-    "qs": "~0.6.6",
-    "sinon": "~1.7.3",
-    "nock": "~0.27.2"
+    "mocha": "1.17.0",
+    "supertest": "0.9.0",
+    "should": "3.0.1",
+    "qs": "0.6.6",
+    "sinon": "1.7.3",
+    "nock": "0.27.2"
   },
   "scripts": {
     "start": "node server.js",
