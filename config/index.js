@@ -16,7 +16,7 @@ var defaults = {
     signature: process.env.PP_SIGNATURE,
     applicationId: process.env.PP_APP_ID,
     // message used in API call /Pay, will replace %d with the amount
-    memoTemplate: 'Pay %d via Example.com',
+    memoTemplate: process.env.PP_MEMO_TEMPLATE || 'Pay %d via Example.com',
   },
   iron: { // settings for iron workerh, see http://dev.iron.io/worker/
     projectId: process.env.IRON_WORKER_PROJECT_ID,
