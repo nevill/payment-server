@@ -2,10 +2,10 @@ var nconf = require('nconf');
 
 var defaults = {
   protocol: process.env.ENABLE_HTTPS ? 'https' : 'http',
-  host: process.env.HOST_NAME,
+  host: process.env.HOST_NAME || 'localhost:3000',
   database: {
     driver: 'mongodb',
-    url: process.env.MONGOLAB_URI,
+    url: process.env.MONGOLAB_URI || 'mongodb://localhost/paymentServer-dev',
     options: {}
   },
   paypal: {
@@ -14,7 +14,7 @@ var defaults = {
     userId: process.env.PP_UID,
     password: process.env.PP_PASSWORD,
     signature: process.env.PP_SIGNATURE,
-    applicationId: process.env.PP_APP_ID,
+    applicationId: process.env.PP_APP_ID || 'APP-80W284485P519543T',
     // message used in API call /Pay, will replace %d with the amount
     memoTemplate: process.env.PP_MEMO_TEMPLATE || 'Pay %d via Example.com',
   },
@@ -30,20 +30,6 @@ var defaults = {
 
 var config = {
   development: {
-    host: 'localhost:3000',
-    database: {
-      url: process.env.MONGOLAB_URI || 'mongodb://localhost/paymentServer-dev',
-    },
-    paypal: {
-      userId: '',
-      password: '',
-      signature: '',
-      applicationId: 'APP-80W284485P519543T',
-    },
-    iron: {
-      projectId: '',
-      token: '',
-    }
   },
   test: {
     host: 'localhost:3000',
