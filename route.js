@@ -25,6 +25,6 @@ module.exports = function(app, context) {
     res.json(req.body);
   });
   app.get('/', function(req, res) {
-    res.send('hello, express.js');
+    res.send('Hello from your Payment server!');
   });
 };
